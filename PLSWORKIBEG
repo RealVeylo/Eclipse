@@ -18,6 +18,7 @@ local userInputService = game:GetService("UserInputService")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local httpService = game:GetService("HttpService")
 local starterGui = game:GetService("StarterGui")
+local coreGui = game:GetService("CoreGui")
 
 -- Variables
 local player = players.LocalPlayer
@@ -33,16 +34,16 @@ local moveToUsing = {}
 
 -- Initialize values if needed
 if not values or IS_PRACTICE then
-	if replicatedStorage:FindFirstChild("Values") then
-		replicatedStorage:FindFirstChild("Values"):Destroy()
-	end
-	values = Instance.new("Folder")
-	local status = Instance.new("StringValue")
-	status.Name = "Status"
-	status.Value = "InPlay"
-	status.Parent = values
-	values.Parent = replicatedStorage
-	values.Name = "Values"
+    if replicatedStorage:FindFirstChild("Values") then
+        replicatedStorage:FindFirstChild("Values"):Destroy()
+    end
+    values = Instance.new("Folder")
+    local status = Instance.new("StringValue")
+    status.Name = "Status"
+    status.Value = "InPlay"
+    status.Parent = values
+    values.Parent = replicatedStorage
+    values.Name = "Values"
 end
 
 if not LPH_OBFUSCATED then
@@ -50,8 +51,7 @@ if not LPH_OBFUSCATED then
 end
 
 -- Anti-Cheat Bypass
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Handshake = ReplicatedStorage.Remotes.CharacterSoundEvent
+local Handshake = replicatedStorage.Remotes.CharacterSoundEvent
 local Hooks = {}
 local HandshakeInts = {}
 
@@ -85,568 +85,855 @@ end))
 task.wait(1)
 
 if not isfolder("eclipsehub") then
-	makefolder("eclipsehub")
+    makefolder("eclipsehub")
 end
 
 -- Initialize ping and fps counters
 local ping = 0
 local fps = 0
 
+-- Colors for the Tyrant Hub theme, but with light blue instead of purple
+local COLORS = {
+    Background = Color3.fromRGB(25, 25, 25), -- Dark background
+    Secondary = Color3.fromRGB(30, 30, 30), -- Slightly darker for panels
+    Accent = Color3.fromRGB(40, 169, 255), -- Light blue accent (instead of purple)
+    Text = Color3.fromRGB(255, 255, 255), -- White text
+    SubText = Color3.fromRGB(200, 200, 200), -- Light gray for subtext
+    Border = Color3.fromRGB(40, 40, 40) -- Dark border
+}
+
+-- Create the UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "EclipseHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = (gethui and gethui()) or coreGui
+
+-- Main frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 500, 0, 300) -- Smaller than the original
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
+MainFrame.BackgroundColor3 = COLORS.Background
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Visible = true
+MainFrame.Parent = ScreenGui
+
+-- Add corner radius
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 6)
+Corner.Parent = MainFrame
+
+-- Top bar with title
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Size = UDim2.new(1, 0, 0, 30)
+TopBar.Position = UDim2.new(0, 0, 0, 0)
+TopBar.BackgroundColor3 = COLORS.Background
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
+
+-- Header background
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 60)
+Header.Position = UDim2.new(0, 0, 0, 0)
+Header.BackgroundColor3 = COLORS.Secondary
+Header.BorderSizePixel = 0
+Header.Parent = MainFrame
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 6)
+HeaderCorner.Parent = Header
+
+-- Fix the bottom corners of the header
+local HeaderFix = Instance.new("Frame")
+HeaderFix.Name = "HeaderFix"
+HeaderFix.Size = UDim2.new(1, 0, 0, 30)
+HeaderFix.Position = UDim2.new(0, 0, 1, -30)
+HeaderFix.BackgroundColor3 = COLORS.Secondary
+HeaderFix.BorderSizePixel = 0
+HeaderFix.ZIndex = 0
+HeaderFix.Parent = Header
+
+-- Title text
+local TitleText = Instance.new("TextLabel")
+TitleText.Name = "Title"
+TitleText.Size = UDim2.new(1, 0, 0, 60)
+TitleText.Position = UDim2.new(0, 20, 0, 0)
+TitleText.BackgroundTransparency = 1
+TitleText.Font = Enum.Font.GothamBold
+TitleText.Text = "ECLIPSE HUB"
+TitleText.TextColor3 = COLORS.Accent
+TitleText.TextSize = 28
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+TitleText.Parent = Header
+
+-- Version text
+local VersionText = Instance.new("TextLabel")
+VersionText.Name = "Version"
+VersionText.Size = UDim2.new(0, 100, 0, 20)
+VersionText.Position = UDim2.new(1, -110, 0, 20)
+VersionText.BackgroundTransparency = 1
+VersionText.Font = Enum.Font.GothamSemibold
+VersionText.Text = "V2.0"
+VersionText.TextColor3 = COLORS.Accent
+VersionText.TextSize = 16
+VersionText.TextXAlignment = Enum.TextXAlignment.Right
+VersionText.Parent = Header
+
+-- Close button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.new(0, 24, 0, 24)
+CloseButton.Position = UDim2.new(1, -30, 0, 18)
+CloseButton.BackgroundColor3 = COLORS.Background
+CloseButton.BorderSizePixel = 0
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = COLORS.Text
+CloseButton.TextSize = 14
+CloseButton.Parent = Header
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 4)
+CloseCorner.Parent = CloseButton
+
+-- Minimize button
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Size = UDim2.new(0, 24, 0, 24)
+MinimizeButton.Position = UDim2.new(1, -60, 0, 18)
+MinimizeButton.BackgroundColor3 = COLORS.Background
+MinimizeButton.BorderSizePixel = 0
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = COLORS.Text
+MinimizeButton.TextSize = 18
+MinimizeButton.Parent = Header
+
+local MinimizeCorner = Instance.new("UICorner")
+MinimizeCorner.CornerRadius = UDim.new(0, 4)
+MinimizeCorner.Parent = MinimizeButton
+
+-- Tab container
+local TabContainer = Instance.new("Frame")
+TabContainer.Name = "TabContainer"
+TabContainer.Size = UDim2.new(0, 130, 1, -60)
+TabContainer.Position = UDim2.new(0, 0, 0, 60)
+TabContainer.BackgroundColor3 = COLORS.Secondary
+TabContainer.BorderSizePixel = 0
+TabContainer.Parent = MainFrame
+
+-- Add rounded corners to tab container but only bottom left
+local TabCorner = Instance.new("UICorner")
+TabCorner.CornerRadius = UDim.new(0, 6)
+TabCorner.Parent = TabContainer
+
+-- Fix the right side of tab container to avoid rounding
+local TabFix = Instance.new("Frame")
+TabFix.Name = "TabFix"
+TabFix.Size = UDim2.new(0, 6, 1, 0)
+TabFix.Position = UDim2.new(1, -6, 0, 0)
+TabFix.BackgroundColor3 = COLORS.Secondary
+TabFix.BorderSizePixel = 0
+TabFix.Parent = TabContainer
+
+-- Create tab list scroll frame
+local TabScroll = Instance.new("ScrollingFrame")
+TabScroll.Name = "TabScroll"
+TabScroll.Size = UDim2.new(1, -4, 1, -6)
+TabScroll.Position = UDim2.new(0, 2, 0, 4)
+TabScroll.BackgroundTransparency = 1
+TabScroll.ScrollBarThickness = 2
+TabScroll.ScrollBarImageColor3 = COLORS.Accent
+TabScroll.BorderSizePixel = 0
+TabScroll.CanvasSize = UDim2.new(0, 0, 0, 0) -- Will be adjusted as tabs are added
+TabScroll.Parent = TabContainer
+
+-- Create tab list layout
+local TabListLayout = Instance.new("UIListLayout")
+TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabListLayout.Padding = UDim.new(0, 8)
+TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+TabListLayout.Parent = TabScroll
+
+-- Create tab padding
+local TabPadding = Instance.new("UIPadding")
+TabPadding.PaddingTop = UDim.new(0, 5)
+TabPadding.PaddingBottom = UDim.new(0, 5)
+TabPadding.Parent = TabScroll
+
+-- Create content container
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Name = "ContentContainer"
+ContentContainer.Size = UDim2.new(1, -130, 1, -60)
+ContentContainer.Position = UDim2.new(0, 130, 0, 60)
+ContentContainer.BackgroundColor3 = COLORS.Background
+ContentContainer.BorderSizePixel = 0
+ContentContainer.Parent = MainFrame
+
+-- Create minimize mode UI (shown when the UI is minimized)
+local MinUI = Instance.new("Frame")
+MinUI.Name = "MinUI"
+MinUI.Size = UDim2.new(0, 40, 0, 40)
+MinUI.Position = UDim2.new(0, 10, 0.5, -20)
+MinUI.BackgroundColor3 = COLORS.Background
+MinUI.BorderSizePixel = 0
+MinUI.Visible = false
+MinUI.Active = true
+MinUI.Draggable = true
+MinUI.Parent = ScreenGui
+
+-- Add corner radius to min UI
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 6)
+MinCorner.Parent = MinUI
+
+-- Add logo text to min UI
+local MinLogo = Instance.new("TextButton")
+MinLogo.Name = "MinLogo"
+MinLogo.Size = UDim2.new(1, -4, 1, -4)
+MinLogo.Position = UDim2.new(0, 2, 0, 2)
+MinLogo.BackgroundColor3 = COLORS.Secondary
+MinLogo.BorderSizePixel = 0
+MinLogo.Font = Enum.Font.GothamBold
+MinLogo.Text = "EH"
+MinLogo.TextColor3 = COLORS.Accent
+MinLogo.TextSize = 16
+MinLogo.Parent = MinUI
+
+-- Add corner radius to min logo
+local MinLogoCorner = Instance.new("UICorner")
+MinLogoCorner.CornerRadius = UDim.new(0, 6)
+MinLogoCorner.Parent = MinLogo
+
+-- Add category tabs
+local CategoryInfo = {
+    {Name = "Catching", LayoutOrder = 1},
+    {Name = "Physics", LayoutOrder = 2},
+    {Name = "Auto", LayoutOrder = 3},
+    {Name = "Throwing", LayoutOrder = 4},
+    {Name = "Player", LayoutOrder = 5},
+    {Name = "Configs", LayoutOrder = 6}
+}
+
+-- Dictionary to store category pages
+local CategoryPages = {}
+-- Track active category
+local ActiveCategory = nil
+
+-- Function to create a category tab
+local function CreateCategoryTab(name, layoutOrder)
+    -- Create the tab button
+    local TabButton = Instance.new("TextButton")
+    TabButton.Name = name.."Tab"
+    TabButton.Size = UDim2.new(0.9, 0, 0, 36)
+    TabButton.BackgroundColor3 = COLORS.Background
+    TabButton.BorderSizePixel = 0
+    TabButton.Font = Enum.Font.GothamSemibold
+    TabButton.Text = name
+    TabButton.TextColor3 = COLORS.Text
+    TabButton.TextSize = 15
+    TabButton.LayoutOrder = layoutOrder
+    TabButton.Parent = TabScroll
+
+    -- Add corner radius to tab button
+    local TabButtonCorner = Instance.new("UICorner")
+    TabButtonCorner.CornerRadius = UDim.new(0, 4)
+    TabButtonCorner.Parent = TabButton
+
+    -- Create content page for this category
+    local ContentPage = Instance.new("ScrollingFrame")
+    ContentPage.Name = name.."Page"
+    ContentPage.Size = UDim2.new(1, 0, 1, 0)
+    ContentPage.BackgroundTransparency = 1
+    ContentPage.BorderSizePixel = 0
+    ContentPage.ScrollBarThickness = 3
+    ContentPage.ScrollBarImageColor3 = COLORS.Accent
+    ContentPage.CanvasSize = UDim2.new(0, 0, 0, 0) -- Will be adjusted as modules are added
+    ContentPage.Visible = false
+    ContentPage.Parent = ContentContainer
+
+    -- Create page layout
+    local PageLayout = Instance.new("UIListLayout")
+    PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    PageLayout.Padding = UDim.new(0, 8)
+    PageLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    PageLayout.Parent = ContentPage
+
+    -- Create page padding
+    local PagePadding = Instance.new("UIPadding")
+    PagePadding.PaddingTop = UDim.new(0, 8)
+    PagePadding.PaddingBottom = UDim.new(0, 8)
+    PagePadding.PaddingLeft = UDim.new(0, 10)
+    PagePadding.PaddingRight = UDim.new(0, 10)
+    PagePadding.Parent = ContentPage
+
+    -- Update canvas size when items are added
+    PageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ContentPage.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 16)
+    end)
+
+    -- Store the category page info
+    CategoryPages[name] = {
+        Button = TabButton,
+        Page = ContentPage,
+        Modules = {}
+    }
+
+    -- Add button click handler
+    TabButton.MouseButton1Click:Connect(function()
+        -- Deactivate current category
+        if ActiveCategory then
+            ActiveCategory.Button.BackgroundColor3 = COLORS.Background
+            ActiveCategory.Button.TextColor3 = COLORS.Text
+            ActiveCategory.Page.Visible = false
+        end
+
+        -- Activate this category
+        TabButton.BackgroundColor3 = COLORS.Accent
+        TabButton.TextColor3 = COLORS.Text
+        ContentPage.Visible = true
+        ActiveCategory = CategoryPages[name]
+    end)
+
+    return CategoryPages[name]
+end
+
+-- Create all category tabs
+for _, category in ipairs(CategoryInfo) do
+    CreateCategoryTab(category.Name, category.LayoutOrder)
+end
+
+-- Set the first category as active
+if CategoryInfo[1] then
+    local firstCategory = CategoryPages[CategoryInfo[1].Name]
+    firstCategory.Button.BackgroundColor3 = COLORS.Accent
+    firstCategory.Button.TextColor3 = COLORS.Text
+    firstCategory.Page.Visible = true
+    ActiveCategory = firstCategory
+end
+
+-- Update tab list canvas size
+TabListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    TabScroll.CanvasSize = UDim2.new(0, 0, 0, TabListLayout.AbsoluteContentSize.Y + 10)
+end)
+
+-- Add button functionality
+CloseButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    MinUI.Visible = true
+end)
+
+MinLogo.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    MinUI.Visible = false
+end)
+
+-- Minimize/restore functionality
+local IsMinimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    IsMinimized = not IsMinimized
+
+    if IsMinimized then
+        MainFrame.Size = UDim2.new(0, 500, 0, 60)
+        TabContainer.Visible = false
+        ContentContainer.Visible = false
+    else
+        MainFrame.Size = UDim2.new(0, 500, 0, 300)
+        TabContainer.Visible = true
+        ContentContainer.Visible = true
+    end
+end)
+
 -- Utility Functions
 function getPing()
-	return statsService.PerformanceStats.Ping:GetValue()
+    return statsService.PerformanceStats.Ping:GetValue()
 end
 
 function getServerPing()
-	return statsService.Network.ServerStatsItem['Data Ping']:GetValue()
+    return statsService.Network.ServerStatsItem['Data Ping']:GetValue()
 end
 
 function findClosestBall()
-	local lowestDistance = math.huge
-	local nearestBall = nil
+    local lowestDistance = math.huge
+    local nearestBall = nil
 
-	local character = player.Character
+    local character = player.Character
 
-	for index, ball in pairs(workspace:GetChildren()) do
-		if ball.Name ~= "Football" then continue end
-		if not ball:IsA("BasePart") then continue end
-		if not character:FindFirstChild("HumanoidRootPart") then continue end
-		local distance = (ball.Position - character.HumanoidRootPart.Position).Magnitude
+    for index, ball in pairs(workspace:GetChildren()) do
+        if ball.Name ~= "Football" then continue end
+        if not ball:IsA("BasePart") then continue end
+        if not character:FindFirstChild("HumanoidRootPart") then continue end
+        local distance = (ball.Position - character.HumanoidRootPart.Position).Magnitude
 
-		if distance < lowestDistance then
-			nearestBall = ball
-			lowestDistance = distance
-		end
-	end
+        if distance < lowestDistance then
+            nearestBall = ball
+            lowestDistance = distance
+        end
+    end
 
-	return nearestBall
+    return nearestBall
+end
+
+function findPossessor()
+    for index, player in pairs(players:GetPlayers()) do
+        local character = player.Character; if not character then continue end
+        if not character:FindFirstChildWhichIsA("Tool") then continue end
+        return player.Character
+    end
+end
+
+function getNearestPartToPartFromParts(part, parts)
+    local lowestDistance = math.huge
+    local nearestPart = nil
+
+    for index, p in pairs(parts) do
+        local distance = (part.Position - p.Position).Magnitude
+
+        if distance < lowestDistance then
+            nearestPart = p
+            lowestDistance = distance
+        end
+    end
+
+    return nearestPart
+end
+
+function beamProjectile(g, v0, x0, t1)
+    local c = 0.5*0.5*0.5;
+    local p3 = 0.5*g*t1*t1 + v0*t1 + x0;
+    local p2 = p3 - (g*t1*t1 + v0*t1)/3;
+    local p1 = (c*g*t1*t1 + 0.5*v0*t1 + x0 - c*(x0+p3))/(3*c) - p2;
+
+    local curve0 = (p1 - x0).magnitude;
+    local curve1 = (p2 - p3).magnitude;
+
+    local b = (x0 - p3).unit;
+    local r1 = (p1 - x0).unit;
+    local u1 = r1:Cross(b).unit;
+    local r2 = (p2 - p3).unit;
+    local u2 = r2:Cross(b).unit;
+    b = u1:Cross(r1).unit;
+
+    local cf1 = CFrame.new(
+        x0.x, x0.y, x0.z,
+        r1.x, u1.x, b.x,
+        r1.y, u1.y, b.y,
+        r1.z, u1.z, b.z
+    )
+
+    local cf2 = CFrame.new(
+        p3.x, p3.y, p3.z,
+        r2.x, u2.x, b.x,
+        r2.y, u2.y, b.y,
+        r2.z, u2.z, b.z
+    )
+
+    return curve0, -curve1, cf1, cf2;
 end
 
 -- Create hitbox visualization part
 local part = Instance.new("Part")
-part.Transparency = 0.5 -- More visible than before
+part.Transparency = 0.5
 part.Anchored = true
 part.CanCollide = false
 part.CastShadow = false
-part.Color = Color3.fromRGB(52, 152, 219) -- Light blue color
+part.Color = COLORS.Accent -- Light blue color
 part.Shape = Enum.PartType.Ball -- Make it a sphere
 part.Material = Enum.Material.ForceField -- Nice effect
 part.Parent = nil -- Don't put in workspace until needed
 
-function beamProjectile(g, v0, x0, t1)
-	local c = 0.5*0.5*0.5;
-	local p3 = 0.5*g*t1*t1 + v0*t1 + x0;
-	local p2 = p3 - (g*t1*t1 + v0*t1)/3;
-	local p1 = (c*g*t1*t1 + 0.5*v0*t1 + x0 - c*(x0+p3))/(3*c) - p2;
+-- Create config save/load UI
+local ConfigUI = Instance.new("Frame")
+ConfigUI.Name = "ConfigUI"
+ConfigUI.Size = UDim2.new(0, 250, 0, 120)
+ConfigUI.Position = UDim2.new(0.5, -125, 0.5, -60)
+ConfigUI.BackgroundColor3 = COLORS.Secondary
+ConfigUI.BorderSizePixel = 0
+ConfigUI.Visible = false
+ConfigUI.ZIndex = 100
+ConfigUI.Parent = ScreenGui
 
-	local curve0 = (p1 - x0).magnitude;
-	local curve1 = (p2 - p3).magnitude;
+-- Add corner radius to config UI
+local ConfigCorner = Instance.new("UICorner")
+ConfigCorner.CornerRadius = UDim.new(0, 6)
+ConfigCorner.Parent = ConfigUI
 
-	local b = (x0 - p3).unit;
-	local r1 = (p1 - x0).unit;
-	local u1 = r1:Cross(b).unit;
-	local r2 = (p2 - p3).unit;
-	local u2 = r2:Cross(b).unit;
-	b = u1:Cross(r1).unit;
+-- Add config title
+local ConfigTitle = Instance.new("TextLabel")
+ConfigTitle.Name = "ConfigTitle"
+ConfigTitle.Size = UDim2.new(1, 0, 0, 30)
+ConfigTitle.BackgroundTransparency = 1
+ConfigTitle.Font = Enum.Font.GothamBold
+ConfigTitle.Text = "Config"
+ConfigTitle.TextColor3 = COLORS.Accent
+ConfigTitle.TextSize = 16
+ConfigTitle.ZIndex = 101
+ConfigTitle.Parent = ConfigUI
 
-	local cf1 = CFrame.new(
-		x0.x, x0.y, x0.z,
-		r1.x, u1.x, b.x,
-		r1.y, u1.y, b.y,
-		r1.z, u1.z, b.z
-	)
+-- Add config input
+local ConfigInput = Instance.new("TextBox")
+ConfigInput.Name = "ConfigInput"
+ConfigInput.Size = UDim2.new(0.8, 0, 0, 30)
+ConfigInput.Position = UDim2.new(0.1, 0, 0.3, 0)
+ConfigInput.BackgroundColor3 = COLORS.Background
+ConfigInput.BorderSizePixel = 0
+ConfigInput.Font = Enum.Font.GothamSemibold
+ConfigInput.PlaceholderText = "Config name..."
+ConfigInput.Text = ""
+ConfigInput.TextColor3 = COLORS.Text
+ConfigInput.TextSize = 14
+ConfigInput.ZIndex = 101
+ConfigInput.Parent = ConfigUI
 
-	local cf2 = CFrame.new(
-		p3.x, p3.y, p3.z,
-		r2.x, u2.x, b.x,
-		r2.y, u2.y, b.y,
-		r2.z, u2.z, b.z
-	)
+-- Add corner radius to config input
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 4)
+InputCorner.Parent = ConfigInput
 
-	return curve0, -curve1, cf1, cf2;
-end
+-- Add confirm button
+local ConfirmButton = Instance.new("TextButton")
+ConfirmButton.Name = "ConfirmButton"
+ConfirmButton.Size = UDim2.new(0.6, 0, 0, 28)
+ConfirmButton.Position = UDim2.new(0.2, 0, 0.7, 0)
+ConfirmButton.BackgroundColor3 = COLORS.Accent
+ConfirmButton.BorderSizePixel = 0
+ConfirmButton.Font = Enum.Font.GothamSemibold
+ConfirmButton.Text = "Confirm"
+ConfirmButton.TextColor3 = COLORS.Text
+ConfirmButton.TextSize = 14
+ConfirmButton.ZIndex = 101
+ConfirmButton.Parent = ConfigUI
 
-function getNearestPartToPartFromParts(part, parts)
-	local lowestDistance = math.huge
-	local nearestPart = nil
+-- Add corner radius to confirm button
+local ConfirmCorner = Instance.new("UICorner")
+ConfirmCorner.CornerRadius = UDim.new(0, 4)
+ConfirmCorner.Parent = ConfirmButton
 
-	for index, p in pairs(parts) do
-		local distance = (part.Position - p.Position).Magnitude
+local ConfigAction = nil
 
-		if distance < lowestDistance then
-			nearestPart = p
-			lowestDistance = distance
-		end
-	end
+-- Keep track of all modules and values
+local Modules = {}
 
-	return nearestPart
-end
+-- Initialize tracking variables
+local fakeBalls = {}
+local pullVectoredBalls = {}
+local velocity = {}
+local isCatching = false
 
-function findPossessor()
-	for index, player in pairs(players:GetPlayers()) do
-		local character = player.Character; if not character then continue end
-		if not character:FindFirstChildWhichIsA("Tool") then continue end
-		return player.Character
-	end
-end
+-- Create ping & fps monitor
+local PingFpsFrame = Instance.new("Frame")
+PingFpsFrame.Name = "PingFpsFrame"
+PingFpsFrame.Size = UDim2.new(0, 70, 0, 30)
+PingFpsFrame.Position = UDim2.new(1, -85, 0, 5)
+PingFpsFrame.BackgroundTransparency = 1
+PingFpsFrame.Parent = Header
 
--- Start ping and fps update threads
+local PingLabel = Instance.new("TextLabel")
+PingLabel.Name = "PingLabel"
+PingLabel.Size = UDim2.new(1, 0, 0.5, 0)
+PingLabel.BackgroundTransparency = 1
+PingLabel.Font = Enum.Font.GothamSemibold
+PingLabel.Text = "Ping: 0ms"
+PingLabel.TextColor3 = COLORS.SubText
+PingLabel.TextSize = 12
+PingLabel.TextXAlignment = Enum.TextXAlignment.Right
+PingLabel.Parent = PingFpsFrame
+
+local FpsLabel = Instance.new("TextLabel")
+FpsLabel.Name = "FpsLabel"
+FpsLabel.Size = UDim2.new(1, 0, 0.5, 0)
+FpsLabel.Position = UDim2.new(0, 0, 0.5, 0)
+FpsLabel.BackgroundTransparency = 1
+FpsLabel.Font = Enum.Font.GothamSemibold
+FpsLabel.Text = "FPS: 60"
+FpsLabel.TextColor3 = COLORS.SubText
+FpsLabel.TextSize = 12
+FpsLabel.TextXAlignment = Enum.TextXAlignment.Right
+FpsLabel.Parent = PingFpsFrame
+
+-- Update ping and fps counters
 task.spawn(function()
-	while true do
-		task.wait(0.1)
-		ping = ( getPing() + getServerPing() ) / 1000
-	end
+    while true do
+        task.wait(0.1)
+        ping = (getPing() + getServerPing()) / 1000
+        PingLabel.Text = "Ping: " .. math.floor(ping * 1000) .. "ms"
+    end
 end)
 
 task.spawn(function()
-	runService.RenderStepped:Connect(function()
-		fps += 1
-		task.delay(1, function()
-			fps -= 1
-		end)
-	end)
+    runService.RenderStepped:Connect(function()
+        fps += 1
+        task.delay(1, function()
+            fps -= 1
+        end)
+        FpsLabel.Text = "FPS: " .. fps
+    end)
 end)
 
--- Custom Eclipse Hub UI Implementation
--- Define the light blue colors for the Eclipse Hub theme
-local THEME = {
-    MainBackground = Color3.fromRGB(20, 20, 20),  -- Dark background
-    SecondaryBackground = Color3.fromRGB(30, 30, 30),  -- Slightly lighter background
-    AccentColor = Color3.fromRGB(52, 152, 255),  -- Light blue accent (main feature)
-    AccentColorDarker = Color3.fromRGB(41, 128, 255),  -- Darker blue for hover effects
-    TextColor = Color3.fromRGB(255, 255, 255),  -- White text
-    SubTextColor = Color3.fromRGB(200, 200, 200),  -- Light gray for secondary text
-    BorderColor = Color3.fromRGB(40, 40, 40),  -- Dark border
-    SliderBackground = Color3.fromRGB(40, 40, 40),  -- Background for sliders
-    ToggleOn = Color3.fromRGB(52, 152, 255),  -- Light blue for enabled toggles
-    ToggleOff = Color3.fromRGB(130, 130, 130),  -- Gray for disabled toggles
-}
+-- Create required modules
+-- Module Creation Functions
+local function CreateModule(category, name, defaultValue)
+    defaultValue = defaultValue or false
 
--- Create a custom UI library for Eclipse Hub
-local EclipseUI = {}
-EclipseUI.ToggleItems = {}
-EclipseUI.Windows = {}
-EclipseUI.Modules = {}
-EclipseUI.Categories = {}
-EclipseUI.ActiveCategory = nil
+    -- Create the module frame
+    local ModuleFrame = Instance.new("Frame")
+    ModuleFrame.Name = name .. "Module"
+    ModuleFrame.Size = UDim2.new(1, 0, 0, 50) -- Initial size, will be adjusted based on content
+    ModuleFrame.BackgroundColor3 = COLORS.Secondary
+    ModuleFrame.BorderSizePixel = 0
+    ModuleFrame.LayoutOrder = #CategoryPages[category].Modules + 1
+    ModuleFrame.Parent = CategoryPages[category].Page
 
--- Create the main ScreenGui container
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "EclipseHub"
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
-
--- Create the main Frame
-local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.BackgroundColor3 = THEME.MainBackground
-mainFrame.BorderColor3 = THEME.BorderColor
-mainFrame.BorderSizePixel = 0
-mainFrame.Position = UDim2.new(0.5, -300, 0.5, -225)
-mainFrame.Size = UDim2.new(0, 600, 0, 450)
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Parent = screenGui
-
--- Add corner rounding to the main frame
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 10)
-mainCorner.Parent = mainFrame
-
--- Create title bar
-local titleBar = Instance.new("Frame")
-titleBar.Name = "TitleBar"
-titleBar.BackgroundColor3 = THEME.SecondaryBackground
-titleBar.BorderSizePixel = 0
-titleBar.Size = UDim2.new(1, 0, 0, 40)
-titleBar.Parent = mainFrame
-
--- Add corner rounding to title bar (top corners only)
-local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 10)
-titleCorner.Parent = titleBar
-
--- Fix for the title bar to only have rounded top corners
-local titleBarFix = Instance.new("Frame")
-titleBarFix.Name = "TitleBarFix"
-titleBarFix.BackgroundColor3 = THEME.SecondaryBackground
-titleBarFix.BorderSizePixel = 0
-titleBarFix.Position = UDim2.new(0, 0, 0.5, 0)
-titleBarFix.Size = UDim2.new(1, 0, 0.5, 0)
-titleBarFix.Parent = titleBar
-
--- Title text
-local titleText = Instance.new("TextLabel")
-titleText.Name = "Title"
-titleText.BackgroundTransparency = 1
-titleText.Position = UDim2.new(0, 20, 0, 0)
-titleText.Size = UDim2.new(0, 200, 1, 0)
-titleText.Font = Enum.Font.GothamBold
-titleText.Text = "ECLIPSE HUB"
-titleText.TextColor3 = THEME.AccentColor
-titleText.TextSize = 22
-titleText.TextXAlignment = Enum.TextXAlignment.Left
-titleText.Parent = titleBar
-
--- Create the sidebar for categories
-local sidebar = Instance.new("Frame")
-sidebar.Name = "Sidebar"
-sidebar.BackgroundColor3 = THEME.SecondaryBackground
-sidebar.BorderSizePixel = 0
-sidebar.Position = UDim2.new(0, 0, 0, 40)
-sidebar.Size = UDim2.new(0, 150, 1, -40)
-sidebar.Parent = mainFrame
-
--- Fix bottom left corner of sidebar
-local sidebarCorner = Instance.new("UICorner")
-sidebarCorner.CornerRadius = UDim.new(0, 10)
-sidebarCorner.Parent = sidebar
-
--- Add a scroll frame for category buttons
-local categoryScrollFrame = Instance.new("ScrollingFrame")
-categoryScrollFrame.Name = "CategoryScrollFrame"
-categoryScrollFrame.BackgroundTransparency = 1
-categoryScrollFrame.Position = UDim2.new(0, 0, 0, 10)
-categoryScrollFrame.Size = UDim2.new(1, 0, 1, -20)
-categoryScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-categoryScrollFrame.ScrollBarThickness = 2
-categoryScrollFrame.ScrollBarImageColor3 = THEME.AccentColor
-categoryScrollFrame.BorderSizePixel = 0
-categoryScrollFrame.Parent = sidebar
-
--- Add auto-layout for the category buttons
-local categoryListLayout = Instance.new("UIListLayout")
-categoryListLayout.Padding = UDim.new(0, 5)
-categoryListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-categoryListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-categoryListLayout.Parent = categoryScrollFrame
-
--- Add padding for category buttons
-local categoryPadding = Instance.new("UIPadding")
-categoryPadding.PaddingTop = UDim.new(0, 5)
-categoryPadding.PaddingRight = UDim.new(0, 5)
-categoryPadding.PaddingBottom = UDim.new(0, 5)
-categoryPadding.PaddingLeft = UDim.new(0, 5)
-categoryPadding.Parent = categoryScrollFrame
-
--- Create the content area
-local contentFrame = Instance.new("Frame")
-contentFrame.Name = "ContentFrame"
-contentFrame.BackgroundTransparency = 1
-contentFrame.Position = UDim2.new(0, 150, 0, 40)
-contentFrame.Size = UDim2.new(1, -150, 1, -40)
-contentFrame.Parent = mainFrame
-
--- Add a close button
-local closeButton = Instance.new("TextButton")
-closeButton.Name = "CloseButton"
-closeButton.AnchorPoint = Vector2.new(1, 0.5)
-closeButton.BackgroundColor3 = THEME.SecondaryBackground
-closeButton.BorderSizePixel = 0
-closeButton.Position = UDim2.new(1, -10, 0.5, 0)
-closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Text = "X"
-closeButton.TextColor3 = THEME.TextColor
-closeButton.TextSize = 16
-closeButton.Parent = titleBar
-
--- Add corner rounding to close button
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 8)
-closeCorner.Parent = closeButton
-
--- Minimize button
-local minimizeButton = Instance.new("TextButton")
-minimizeButton.Name = "MinimizeButton"
-minimizeButton.AnchorPoint = Vector2.new(1, 0.5)
-minimizeButton.BackgroundColor3 = THEME.SecondaryBackground
-minimizeButton.BorderSizePixel = 0
-minimizeButton.Position = UDim2.new(1, -50, 0.5, 0)
-minimizeButton.Size = UDim2.new(0, 30, 0, 30)
-minimizeButton.Font = Enum.Font.GothamBold
-minimizeButton.Text = "-"
-minimizeButton.TextColor3 = THEME.TextColor
-minimizeButton.TextSize = 24
-minimizeButton.Parent = titleBar
-
--- Add corner rounding to minimize button
-local minimizeCorner = Instance.new("UICorner")
-minimizeCorner.CornerRadius = UDim.new(0, 8)
-minimizeCorner.Parent = minimizeButton
-
--- Add functionality to close button
-closeButton.MouseButton1Click:Connect(function()
-    mainFrame.Visible = false
-    minimizedUI.Visible = true
-end)
-
--- Function to create module in a category
-function EclipseUI:CreateModule(category, name, defaultState)
-    -- Default state is off if not specified
-    defaultState = defaultState or false
-
-    -- Create module container
-    local moduleFrame = Instance.new("Frame")
-    moduleFrame.Name = name.."Module"
-    moduleFrame.BackgroundColor3 = THEME.SecondaryBackground
-    moduleFrame.BorderSizePixel = 0
-    moduleFrame.Size = UDim2.new(1, 0, 0, 120) -- Taller than default to accommodate controls
-    moduleFrame.Parent = category.Container
-
-    -- Add corner rounding to module frame
-    local moduleCorner = Instance.new("UICorner")
-    moduleCorner.CornerRadius = UDim.new(0, 8)
-    moduleCorner.Parent = moduleFrame
+    -- Add corner radius
+    local ModuleCorner = Instance.new("UICorner")
+    ModuleCorner.CornerRadius = UDim.new(0, 6)
+    ModuleCorner.Parent = ModuleFrame
 
     -- Add module title
-    local moduleTitle = Instance.new("TextLabel")
-    moduleTitle.Name = "Title"
-    moduleTitle.BackgroundTransparency = 1
-    moduleTitle.Position = UDim2.new(0, 15, 0, 10)
-    moduleTitle.Size = UDim2.new(1, -30, 0, 25)
-    moduleTitle.Font = Enum.Font.GothamBold
-    moduleTitle.Text = name
-    moduleTitle.TextColor3 = THEME.AccentColor
-    moduleTitle.TextSize = 18
-    moduleTitle.TextXAlignment = Enum.TextXAlignment.Left
-    moduleTitle.Parent = moduleFrame
+    local ModuleTitle = Instance.new("TextLabel")
+    ModuleTitle.Name = "Title"
+    ModuleTitle.Size = UDim2.new(0.6, -10, 0, 30)
+    ModuleTitle.Position = UDim2.new(0, 10, 0, 0)
+    ModuleTitle.BackgroundTransparency = 1
+    ModuleTitle.Font = Enum.Font.GothamSemibold
+    ModuleTitle.Text = name
+    ModuleTitle.TextColor3 = COLORS.Accent
+    ModuleTitle.TextSize = 16
+    ModuleTitle.TextXAlignment = Enum.TextXAlignment.Left
+    ModuleTitle.Parent = ModuleFrame
 
-    -- Create toggle button
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Name = "ToggleButton"
-    toggleButton.AnchorPoint = Vector2.new(1, 0)
-    toggleButton.BackgroundColor3 = defaultState and THEME.ToggleOn or THEME.ToggleOff
-    toggleButton.BorderSizePixel = 0
-    toggleButton.Position = UDim2.new(1, -15, 0, 10)
-    toggleButton.Size = UDim2.new(0, 40, 0, 24)
-    toggleButton.Font = Enum.Font.GothamBold
-    toggleButton.Text = ""
-    toggleButton.TextColor3 = THEME.TextColor
-    toggleButton.TextSize = 14
-    toggleButton.Parent = moduleFrame
+    -- Add toggle switch
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Name = "ToggleFrame"
+    ToggleFrame.Size = UDim2.new(0, 36, 0, 20)
+    ToggleFrame.Position = UDim2.new(1, -46, 0, 5)
+    ToggleFrame.BackgroundColor3 = defaultValue and COLORS.Accent or COLORS.Background
+    ToggleFrame.BorderSizePixel = 0
+    ToggleFrame.Parent = ModuleFrame
 
-    -- Add corner rounding to toggle button
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 12)
-    toggleCorner.Parent = toggleButton
+    -- Add corner radius to toggle
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(1, 0)
+    ToggleCorner.Parent = ToggleFrame
 
-    -- Create toggle circle indicator
-    local toggleCircle = Instance.new("Frame")
-    toggleCircle.Name = "Circle"
-    toggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    toggleCircle.Position = defaultState and UDim2.new(1, -22, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
-    toggleCircle.Size = UDim2.new(0, 20, 0, 20)
-    toggleCircle.AnchorPoint = Vector2.new(0, 0.5)
-    toggleCircle.Parent = toggleButton
+    -- Add toggle indicator
+    local ToggleIndicator = Instance.new("Frame")
+    ToggleIndicator.Name = "Indicator"
+    ToggleIndicator.Size = UDim2.new(0, 16, 0, 16)
+    ToggleIndicator.Position = UDim2.new(defaultValue and 1 or 0, defaultValue and -18 or 2, 0.5, -8)
+    ToggleIndicator.BackgroundColor3 = COLORS.Text
+    ToggleIndicator.BorderSizePixel = 0
+    ToggleIndicator.Parent = ToggleFrame
 
-    -- Add corner rounding to toggle circle
-    local circleCorner = Instance.new("UICorner")
-    circleCorner.CornerRadius = UDim.new(1, 0)
-    circleCorner.Parent = toggleCircle
+    -- Add corner radius to indicator
+    local IndicatorCorner = Instance.new("UICorner")
+    IndicatorCorner.CornerRadius = UDim.new(1, 0)
+    IndicatorCorner.Parent = ToggleIndicator
 
-    -- Create content container for controls
-    local contentContainer = Instance.new("Frame")
-    contentContainer.Name = "Content"
-    contentContainer.BackgroundTransparency = 1
-    contentContainer.Position = UDim2.new(0, 15, 0, 45)
-    contentContainer.Size = UDim2.new(1, -30, 1, -55)
-    contentContainer.Parent = moduleFrame
+    -- Add content container
+    local ContentContainer = Instance.new("Frame")
+    ContentContainer.Name = "ContentContainer"
+    ContentContainer.Size = UDim2.new(1, -20, 1, -30)
+    ContentContainer.Position = UDim2.new(0, 10, 0, 30)
+    ContentContainer.BackgroundTransparency = 1
+    ContentContainer.Parent = ModuleFrame
 
-    -- Add layout for controls
-    local controlsLayout = Instance.new("UIListLayout")
-    controlsLayout.Padding = UDim.new(0, 10)
-    controlsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    controlsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    controlsLayout.Parent = contentContainer
+    -- Add layout for content
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.Padding = UDim.new(0, 8)
+    ContentLayout.FillDirection = Enum.FillDirection.Vertical
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ContentLayout.Parent = ContentContainer
 
-    -- Add padding for controls
-    local controlsPadding = Instance.new("UIPadding")
-    controlsPadding.PaddingTop = UDim.new(0, 5)
-    controlsPadding.PaddingRight = UDim.new(0, 5)
-    controlsPadding.PaddingBottom = UDim.new(0, 5)
-    controlsPadding.PaddingLeft = UDim.new(0, 5)
-    controlsPadding.Parent = contentContainer
-
-    -- Create module object
+    -- Create module info
     local module = {
-        Name = name,
-        Frame = moduleFrame,
-        Container = contentContainer,
-        ToggleButton = toggleButton,
-        ToggleCircle = toggleCircle,
-        Enabled = defaultState,
+        Frame = ModuleFrame,
+        Toggle = ToggleFrame,
+        Indicator = ToggleIndicator,
+        Container = ContentContainer,
+        Value = defaultValue,
         Controls = {},
-        Value = defaultState
+        Name = name
     }
 
-    -- Add to category's modules
-    table.insert(category.Modules, module)
+    -- Add to modules list and category modules
+    Modules[name] = module
+    table.insert(CategoryPages[category].Modules, module)
 
-    -- Add toggle functionality
-    toggleButton.MouseButton1Click:Connect(function()
-        module.Enabled = not module.Enabled
-        module.Value = module.Enabled
+    -- Make toggle clickable
+    ToggleFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            module.Value = not module.Value
 
-        -- Update toggle appearance
-        toggleButton.BackgroundColor3 = module.Enabled and THEME.ToggleOn or THEME.ToggleOff
+            -- Animate the toggle
+            local targetPos = module.Value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            local targetColor = module.Value and COLORS.Accent or COLORS.Background
 
-        -- Animate toggle circle
-        local newPosition = module.Enabled and UDim2.new(1, -22, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
-        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        local tween = tweenService:Create(toggleCircle, tweenInfo, {Position = newPosition})
-        tween:Play()
+            tweenService:Create(
+                ToggleIndicator,
+                TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                {Position = targetPos}
+            ):Play()
+
+            tweenService:Create(
+                ToggleFrame,
+                TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                {BackgroundColor3 = targetColor}
+            ):Play()
+        end
     end)
 
-    -- Auto-adjust module height based on controls
-    controlsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        moduleFrame.Size = UDim2.new(1, 0, 0, 45 + controlsLayout.AbsoluteContentSize.Y + 15)
+    -- Update module height based on content
+    ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ModuleFrame.Size = UDim2.new(1, 0, 0, 30 + ContentLayout.AbsoluteContentSize.Y + 10)
     end)
-
-    -- Add to EclipseUI modules table
-    EclipseUI.Modules[name] = module
 
     return module
 end
 
 -- Function to create a slider control
-function EclipseUI:CreateSlider(module, title, min, max, default, callback)
-    -- Default values if not provided
+local function CreateSlider(module, name, min, max, default)
     min = min or 0
     max = max or 100
-    default = default or min
+    default = math.clamp(default or min, min, max)
 
-    -- Clamp default value to range
-    default = math.clamp(default, min, max)
+    -- Create container
+    local SliderContainer = Instance.new("Frame")
+    SliderContainer.Name = name .. "Container"
+    SliderContainer.Size = UDim2.new(1, 0, 0, 35)
+    SliderContainer.BackgroundTransparency = 1
+    SliderContainer.LayoutOrder = #module.Controls + 1
+    SliderContainer.Parent = module.Container
 
-    -- Create slider container
-    local sliderContainer = Instance.new("Frame")
-    sliderContainer.Name = title.."SliderContainer"
-    sliderContainer.BackgroundTransparency = 1
-    sliderContainer.Size = UDim2.new(1, 0, 0, 50)
-    sliderContainer.Parent = module.Container
+    -- Create title
+    local SliderTitle = Instance.new("TextLabel")
+    SliderTitle.Name = "Title"
+    SliderTitle.Size = UDim2.new(0.7, 0, 0, 20)
+    SliderTitle.Position = UDim2.new(0, 0, 0, 0)
+    SliderTitle.BackgroundTransparency = 1
+    SliderTitle.Font = Enum.Font.GothamSemibold
+    SliderTitle.Text = name
+    SliderTitle.TextColor3 = COLORS.Text
+    SliderTitle.TextSize = 14
+    SliderTitle.TextXAlignment = Enum.TextXAlignment.Left
+    SliderTitle.Parent = SliderContainer
 
-    -- Create slider title
-    local sliderTitle = Instance.new("TextLabel")
-    sliderTitle.Name = "Title"
-    sliderTitle.BackgroundTransparency = 1
-    sliderTitle.Position = UDim2.new(0, 0, 0, 0)
-    sliderTitle.Size = UDim2.new(1, 0, 0, 20)
-    sliderTitle.Font = Enum.Font.GothamSemibold
-    sliderTitle.Text = title
-    sliderTitle.TextColor3 = THEME.TextColor
-    sliderTitle.TextSize = 14
-    sliderTitle.TextXAlignment = Enum.TextXAlignment.Left
-    sliderTitle.Parent = sliderContainer
-
-    -- Create slider value display
-    local sliderValue = Instance.new("TextLabel")
-    sliderValue.Name = "Value"
-    sliderValue.BackgroundTransparency = 1
-    sliderValue.Position = UDim2.new(1, -40, 0, 0)
-    sliderValue.Size = UDim2.new(0, 40, 0, 20)
-    sliderValue.Font = Enum.Font.GothamSemibold
-    sliderValue.Text = tostring(default)
-    sliderValue.TextColor3 = THEME.AccentColor
-    sliderValue.TextSize = 14
-    sliderValue.TextXAlignment = Enum.TextXAlignment.Right
-    sliderValue.Parent = sliderContainer
+    -- Create value label
+    local ValueLabel = Instance.new("TextLabel")
+    ValueLabel.Name = "Value"
+    ValueLabel.Size = UDim2.new(0.3, 0, 0, 20)
+    ValueLabel.Position = UDim2.new(0.7, 0, 0, 0)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Font = Enum.Font.GothamSemibold
+    ValueLabel.Text = tostring(default)
+    ValueLabel.TextColor3 = COLORS.Accent
+    ValueLabel.TextSize = 14
+    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValueLabel.Parent = SliderContainer
 
     -- Create slider background
-    local sliderBackground = Instance.new("Frame")
-    sliderBackground.Name = "Background"
-    sliderBackground.BackgroundColor3 = THEME.SliderBackground
-    sliderBackground.BorderSizePixel = 0
-    sliderBackground.Position = UDim2.new(0, 0, 0, 25)
-    sliderBackground.Size = UDim2.new(1, 0, 0, 10)
-    sliderBackground.Parent = sliderContainer
+    local SliderBack = Instance.new("Frame")
+    SliderBack.Name = "Background"
+    SliderBack.Size = UDim2.new(1, 0, 0, 8)
+    SliderBack.Position = UDim2.new(0, 0, 0, 25)
+    SliderBack.BackgroundColor3 = COLORS.Background
+    SliderBack.BorderSizePixel = 0
+    SliderBack.Parent = SliderContainer
 
-    -- Add corner rounding to slider background
-    local backgroundCorner = Instance.new("UICorner")
-    backgroundCorner.CornerRadius = UDim.new(0, 5)
-    backgroundCorner.Parent = sliderBackground
+    -- Add corner radius to background
+    local BackCorner = Instance.new("UICorner")
+    BackCorner.CornerRadius = UDim.new(1, 0)
+    BackCorner.Parent = SliderBack
 
-    -- Create slider fill
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Name = "Fill"
-    sliderFill.BackgroundColor3 = THEME.AccentColor
-    sliderFill.BorderSizePixel = 0
-    sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-    sliderFill.Parent = sliderBackground
+    -- Create fill
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Name = "Fill"
+    SliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    SliderFill.BackgroundColor3 = COLORS.Accent
+    SliderFill.BorderSizePixel = 0
+    SliderFill.Parent = SliderBack
 
-    -- Add corner rounding to slider fill
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(0, 5)
-    fillCorner.Parent = sliderFill
+    -- Add corner radius to fill
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(1, 0)
+    FillCorner.Parent = SliderFill
 
-    -- Create slider thumb
-    local sliderThumb = Instance.new("Frame")
-    sliderThumb.Name = "Thumb"
-    sliderThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    sliderThumb.BorderSizePixel = 0
-    sliderThumb.Position = UDim2.new((default - min) / (max - min), 0, 0.5, 0)
-    sliderThumb.Size = UDim2.new(0, 16, 0, 16)
-    sliderThumb.AnchorPoint = Vector2.new(0.5, 0.5)
-    sliderThumb.Parent = sliderBackground
+    -- Create knob
+    local SliderKnob = Instance.new("Frame")
+    SliderKnob.Name = "Knob"
+    SliderKnob.Size = UDim2.new(0, 14, 0, 14)
+    SliderKnob.Position = UDim2.new((default - min) / (max - min), 0, 0.5, 0)
+    SliderKnob.AnchorPoint = Vector2.new(0.5, 0.5)
+    SliderKnob.BackgroundColor3 = COLORS.Text
+    SliderKnob.BorderSizePixel = 0
+    SliderKnob.Parent = SliderBack
 
-    -- Add corner rounding to slider thumb
-    local thumbCorner = Instance.new("UICorner")
-    thumbCorner.CornerRadius = UDim.new(1, 0)
-    thumbCorner.Parent = sliderThumb
+    -- Add corner radius to knob
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(1, 0)
+    KnobCorner.Parent = SliderKnob
 
-    -- Create slider control object
-    local sliderControl = {
-        Title = title,
-        Container = sliderContainer,
-        Background = sliderBackground,
-        Fill = sliderFill,
-        Thumb = sliderThumb,
+    -- Create slider info
+    local slider = {
+        Container = SliderContainer,
+        Background = SliderBack,
+        Fill = SliderFill,
+        Knob = SliderKnob,
         Value = default,
         Min = min,
         Max = max,
-        Callback = callback
+        Title = name,
+        ValueLabel = ValueLabel
     }
 
-    -- Add to module's controls
-    table.insert(module.Controls, sliderControl)
+    -- Add to module controls
+    table.insert(module.Controls, slider)
 
-    -- Add dragging functionality
+    -- Make slider interactive
     local isDragging = false
 
-    sliderBackground.InputBegan:Connect(function(input)
+    local function updateSlider(x)
+        local relX = math.clamp((x - SliderBack.AbsolutePosition.X) / SliderBack.AbsoluteSize.X, 0, 1)
+        local value
+
+        -- Integer slider if min and max are integers
+        if math.floor(min) == min and math.floor(max) == max then
+            value = math.floor(min + relX * (max - min) + 0.5)
+        else
+            value = min + relX * (max - min)
+        end
+
+        slider.Value = value
+        ValueLabel.Text = tostring(value)
+        SliderFill.Size = UDim2.new(relX, 0, 1, 0)
+        SliderKnob.Position = UDim2.new(relX, 0, 0.5, 0)
+    end
+
+    SliderBack.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             isDragging = true
-
-            -- Calculate the new value based on mouse position
-            local mousePos = input.Position.X
-            local sliderPos = sliderBackground.AbsolutePosition.X
-            local sliderWidth = sliderBackground.AbsoluteSize.X
-
-            local relativePos = math.clamp((mousePos - sliderPos) / sliderWidth, 0, 1)
-            local newValue = min + (max - min) * relativePos
-
-            -- Round to integers if both min and max are integers
-            if math.floor(min) == min and math.floor(max) == max then
-                newValue = math.floor(newValue + 0.5)
-            end
-
-            -- Update the slider value
-            sliderControl.Value = newValue
-            sliderValue.Text = tostring(newValue)
-
-            -- Update slider fill and thumb position
-            sliderFill.Size = UDim2.new(relativePos, 0, 1, 0)
-            sliderThumb.Position = UDim2.new(relativePos, 0, 0.5, 0)
-
-            -- Call the callback function if provided
-            if callback then
-                callback(newValue)
-            end
+            updateSlider(input.Position.X)
         end
     end)
 
-    sliderBackground.InputEnded:Connect(function(input)
+    SliderBack.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isDragging = false
+        end
+    end)
+
+    SliderKnob.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isDragging = true
+        end
+    end)
+
+    SliderKnob.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             isDragging = false
         end
@@ -654,553 +941,476 @@ function EclipseUI:CreateSlider(module, title, min, max, default, callback)
 
     userInputService.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
-            -- Calculate the new value based on mouse position
-            local mousePos = input.Position.X
-            local sliderPos = sliderBackground.AbsolutePosition.X
-            local sliderWidth = sliderBackground.AbsoluteSize.X
-
-            local relativePos = math.clamp((mousePos - sliderPos) / sliderWidth, 0, 1)
-            local newValue = min + (max - min) * relativePos
-
-            -- Round to integers if both min and max are integers
-            if math.floor(min) == min and math.floor(max) == max then
-                newValue = math.floor(newValue + 0.5)
-            end
-
-            -- Update the slider value
-            sliderControl.Value = newValue
-            sliderValue.Text = tostring(newValue)
-
-            -- Update slider fill and thumb position
-            sliderFill.Size = UDim2.new(relativePos, 0, 1, 0)
-            sliderThumb.Position = UDim2.new(relativePos, 0, 0.5, 0)
-
-            -- Call the callback function if provided
-            if callback then
-                callback(newValue)
-            end
+            updateSlider(input.Position.X)
         end
     end)
 
-    return sliderControl
+    return slider
 end
 
--- Function to create a switch/dropdown control
-function EclipseUI:CreateSwitch(module, title, options, default, callback)
-    -- Default values
+-- Function to create a dropdown control
+local function CreateDropdown(module, name, options, default)
     options = options or {"Option 1", "Option 2"}
     default = default or options[1]
 
-    -- Create switch container
-    local switchContainer = Instance.new("Frame")
-    switchContainer.Name = title.."SwitchContainer"
-    switchContainer.BackgroundTransparency = 1
-    switchContainer.Size = UDim2.new(1, 0, 0, 50)
-    switchContainer.Parent = module.Container
+    -- Create container
+    local DropContainer = Instance.new("Frame")
+    DropContainer.Name = name .. "Container"
+    DropContainer.Size = UDim2.new(1, 0, 0, 60)
+    DropContainer.BackgroundTransparency = 1
+    DropContainer.LayoutOrder = #module.Controls + 1
+    DropContainer.Parent = module.Container
 
-    -- Create switch title
-    local switchTitle = Instance.new("TextLabel")
-    switchTitle.Name = "Title"
-    switchTitle.BackgroundTransparency = 1
-    switchTitle.Position = UDim2.new(0, 0, 0, 0)
-    switchTitle.Size = UDim2.new(1, 0, 0, 20)
-    switchTitle.Font = Enum.Font.GothamSemibold
-    switchTitle.Text = title
-    switchTitle.TextColor3 = THEME.TextColor
-    switchTitle.TextSize = 14
-    switchTitle.TextXAlignment = Enum.TextXAlignment.Left
-    switchTitle.Parent = switchContainer
+    -- Create title
+    local DropTitle = Instance.new("TextLabel")
+    DropTitle.Name = "Title"
+    DropTitle.Size = UDim2.new(1, 0, 0, 20)
+    DropTitle.BackgroundTransparency = 1
+    DropTitle.Font = Enum.Font.GothamSemibold
+    DropTitle.Text = name
+    DropTitle.TextColor3 = COLORS.Text
+    DropTitle.TextSize = 14
+    DropTitle.TextXAlignment = Enum.TextXAlignment.Left
+    DropTitle.Parent = DropContainer
 
     -- Create dropdown button
-    local dropdownButton = Instance.new("TextButton")
-    dropdownButton.Name = "DropdownButton"
-    dropdownButton.BackgroundColor3 = THEME.SecondaryBackground
-    dropdownButton.BorderSizePixel = 0
-    dropdownButton.Position = UDim2.new(0, 0, 0, 25)
-    dropdownButton.Size = UDim2.new(1, 0, 0, 30)
-    dropdownButton.Font = Enum.Font.GothamSemibold
-    dropdownButton.Text = default
-    dropdownButton.TextColor3 = THEME.TextColor
-    dropdownButton.TextSize = 14
-    dropdownButton.Parent = switchContainer
+    local DropButton = Instance.new("TextButton")
+    DropButton.Name = "Button"
+    DropButton.Size = UDim2.new(1, 0, 0, 30)
+    DropButton.Position = UDim2.new(0, 0, 0, 25)
+    DropButton.BackgroundColor3 = COLORS.Background
+    DropButton.BorderSizePixel = 0
+    DropButton.Font = Enum.Font.GothamSemibold
+    DropButton.Text = default
+    DropButton.TextColor3 = COLORS.Text
+    DropButton.TextSize = 14
+    DropButton.TextXAlignment = Enum.TextXAlignment.Left
+    DropButton.Parent = DropContainer
 
-    -- Add corner rounding to dropdown button
-    local dropdownCorner = Instance.new("UICorner")
-    dropdownCorner.CornerRadius = UDim.new(0, 5)
-    dropdownCorner.Parent = dropdownButton
+    -- Add padding to button text
+    local TextPadding = Instance.new("UIPadding")
+    TextPadding.PaddingLeft = UDim.new(0, 8)
+    TextPadding.Parent = DropButton
 
-    -- Create dropdown icon
-    local dropdownIcon = Instance.new("ImageLabel")
-    dropdownIcon.Name = "Icon"
-    dropdownIcon.BackgroundTransparency = 1
-    dropdownIcon.Position = UDim2.new(1, -25, 0.5, 0)
-    dropdownIcon.Size = UDim2.new(0, 15, 0, 15)
-    dropdownIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-    dropdownIcon.Image = "rbxassetid://6031091004"
-    dropdownIcon.ImageColor3 = THEME.AccentColor
-    dropdownIcon.Parent = dropdownButton
+    -- Add corner radius
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 4)
+    ButtonCorner.Parent = DropButton
 
-    -- Create dropdown menu
-    local dropdownMenu = Instance.new("Frame")
-    dropdownMenu.Name = "DropdownMenu"
-    dropdownMenu.BackgroundColor3 = THEME.SecondaryBackground
-    dropdownMenu.BorderSizePixel = 0
-    dropdownMenu.Position = UDim2.new(0, 0, 1, 5)
-    dropdownMenu.Size = UDim2.new(1, 0, 0, #options * 30)
-    dropdownMenu.Visible = false
-    dropdownMenu.ZIndex = 10
-    dropdownMenu.Parent = dropdownButton
+    -- Create arrow icon
+    local ArrowIcon = Instance.new("ImageLabel")
+    ArrowIcon.Name = "Arrow"
+    ArrowIcon.Size = UDim2.new(0, 12, 0, 12)
+    ArrowIcon.Position = UDim2.new(1, -20, 0.5, -6)
+    ArrowIcon.BackgroundTransparency = 1
+    ArrowIcon.Image = "rbxassetid://6031091004"
+    ArrowIcon.ImageColor3 = COLORS.Accent
+    ArrowIcon.Parent = DropButton
 
-    -- Add corner rounding to dropdown menu
-    local menuCorner = Instance.new("UICorner")
-    menuCorner.CornerRadius = UDim.new(0, 5)
-    menuCorner.Parent = dropdownMenu
+    -- Create dropdown
+    local DropList = Instance.new("Frame")
+    DropList.Name = "DropList"
+    DropList.Size = UDim2.new(1, 0, 0, #options * 30)
+    DropList.Position = UDim2.new(0, 0, 1, 5)
+    DropList.BackgroundColor3 = COLORS.Background
+    DropList.BorderSizePixel = 0
+    DropList.ZIndex = 10
+    DropList.Visible = false
+    DropList.Parent = DropButton
 
-    -- Add layout for dropdown options
-    local optionsLayout = Instance.new("UIListLayout")
-    optionsLayout.Padding = UDim.new(0, 2)
-    optionsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    optionsLayout.Parent = dropdownMenu
+    -- Add corner radius to dropdown
+    local ListCorner = Instance.new("UICorner")
+    ListCorner.CornerRadius = UDim.new(0, 4)
+    ListCorner.Parent = DropList
 
-    -- Create switch control object
-    local switchControl = {
-        Title = title,
-        Container = switchContainer,
-        Button = dropdownButton,
-        Menu = dropdownMenu,
+    -- Create layout
+    local OptionLayout = Instance.new("UIListLayout")
+    OptionLayout.Padding = UDim.new(0, 0)
+    OptionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    OptionLayout.Parent = DropList
+
+    -- Create dropdown info
+    local dropdown = {
+        Container = DropContainer,
+        Button = DropButton,
+        List = DropList,
         Value = default,
-        Options = options,
-        Callback = callback
+        Title = name,
+        Options = {}
     }
 
-    -- Add to module's controls
-    table.insert(module.Controls, switchControl)
+    -- Add to module controls
+    table.insert(module.Controls, dropdown)
 
-    -- Create option buttons
+    -- Add options
     for i, option in ipairs(options) do
-        local optionButton = Instance.new("TextButton")
-        optionButton.Name = option.."Option"
-        optionButton.BackgroundColor3 = THEME.MainBackground
-        optionButton.BorderSizePixel = 0
-        optionButton.Size = UDim2.new(0.95, 0, 0, 25)
-        optionButton.Font = Enum.Font.GothamSemibold
-        optionButton.Text = option
-        optionButton.TextColor3 = option == default and THEME.AccentColor or THEME.TextColor
-        optionButton.TextSize = 14
-        optionButton.ZIndex = 11
-        optionButton.Parent = dropdownMenu
+        local OptionButton = Instance.new("TextButton")
+        OptionButton.Name = option .. "Option"
+        OptionButton.Size = UDim2.new(1, 0, 0, 30)
+        OptionButton.BackgroundTransparency = 1
+        OptionButton.Font = Enum.Font.GothamSemibold
+        OptionButton.Text = option
+        OptionButton.TextColor3 = option == default and COLORS.Accent or COLORS.Text
+        OptionButton.TextSize = 14
+        OptionButton.ZIndex = 11
+        OptionButton.LayoutOrder = i
+        OptionButton.Parent = DropList
 
-        -- Add corner rounding to option button
-        local optionCorner = Instance.new("UICorner")
-        optionCorner.CornerRadius = UDim.new(0, 5)
-        optionCorner.Parent = optionButton
+        -- Add padding
+        local OptionPadding = Instance.new("UIPadding")
+        OptionPadding.PaddingLeft = UDim.new(0, 8)
+        OptionPadding.Parent = OptionButton
 
-        -- Add click functionality
-        optionButton.MouseButton1Click:Connect(function()
-            -- Update selected option
-            switchControl.Value = option
-            dropdownButton.Text = option
+        -- Add hover effect
+        OptionButton.MouseEnter:Connect(function()
+            OptionButton.BackgroundTransparency = 0.8
+        end)
 
-            -- Update option colors
-            for _, child in pairs(dropdownMenu:GetChildren()) do
-                if child:IsA("TextButton") then
-                    child.TextColor3 = child.Text == option and THEME.AccentColor or THEME.TextColor
+        OptionButton.MouseLeave:Connect(function()
+            OptionButton.BackgroundTransparency = 1
+        end)
+
+        -- Add click behavior
+        OptionButton.MouseButton1Click:Connect(function()
+            dropdown.Value = option
+            DropButton.Text = option
+
+            -- Update colors
+            for _, btn in pairs(DropList:GetChildren()) do
+                if btn:IsA("TextButton") then
+                    btn.TextColor3 = btn.Text == option and COLORS.Accent or COLORS.Text
                 end
             end
 
-            -- Hide the menu
-            dropdownMenu.Visible = false
-
-            -- Call the callback function if provided
-            if callback then
-                callback(option)
-            end
+            DropList.Visible = false
         end)
+
+        table.insert(dropdown.Options, OptionButton)
     end
 
-    -- Add click functionality to toggle menu
-    dropdownButton.MouseButton1Click:Connect(function()
-        dropdownMenu.Visible = not dropdownMenu.Visible
+    -- Toggle dropdown visibility
+    DropButton.MouseButton1Click:Connect(function()
+        DropList.Visible = not DropList.Visible
     end)
 
-    -- Hide menu when clicking elsewhere
+    -- Close dropdown when clicking elsewhere
     userInputService.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 and dropdownMenu.Visible then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
             local mousePos = userInputService:GetMouseLocation()
-            local menuPos = dropdownMenu.AbsolutePosition
-            local menuSize = dropdownMenu.AbsoluteSize
+            if DropList.Visible then
+                local dropListPos = DropList.AbsolutePosition
+                local dropListSize = DropList.AbsoluteSize
+                local dropButtonPos = DropButton.AbsolutePosition
+                local dropButtonSize = DropButton.AbsoluteSize
 
-            if mousePos.X < menuPos.X or mousePos.X > menuPos.X + menuSize.X or
-               mousePos.Y < menuPos.Y or mousePos.Y > menuPos.Y + menuSize.Y then
-                if not (mousePos.X >= dropdownButton.AbsolutePosition.X and
-                       mousePos.X <= dropdownButton.AbsolutePosition.X + dropdownButton.AbsoluteSize.X and
-                       mousePos.Y >= dropdownButton.AbsolutePosition.Y and
-                       mousePos.Y <= dropdownButton.AbsolutePosition.Y + dropdownButton.AbsoluteSize.Y) then
-                    dropdownMenu.Visible = false
+                if not (
+                    (mousePos.X >= dropListPos.X and mousePos.X <= dropListPos.X + dropListSize.X and
+                     mousePos.Y >= dropListPos.Y and mousePos.Y <= dropListPos.Y + dropListSize.Y) or
+                    (mousePos.X >= dropButtonPos.X and mousePos.X <= dropButtonPos.X + dropButtonSize.X and
+                     mousePos.Y >= dropButtonPos.Y and mousePos.Y <= dropButtonPos.Y + dropButtonSize.Y)
+                ) then
+                    DropList.Visible = false
                 end
             end
         end
     end)
 
-    return switchControl
+    return dropdown
 end
 
 -- Function to create a keybind control
-function EclipseUI:CreateKeybind(module, title, defaultKey, callback)
-    -- Default values
+local function CreateKeybind(module, name, defaultKey)
     defaultKey = defaultKey or Enum.KeyCode.F
 
-    -- Create keybind container
-    local keybindContainer = Instance.new("Frame")
-    keybindContainer.Name = title.."KeybindContainer"
-    keybindContainer.BackgroundTransparency = 1
-    keybindContainer.Size = UDim2.new(1, 0, 0, 50)
-    keybindContainer.Parent = module.Container
+    -- Create container
+    local KeyContainer = Instance.new("Frame")
+    KeyContainer.Name = name .. "Container"
+    KeyContainer.Size = UDim2.new(1, 0, 0, 55)
+    KeyContainer.BackgroundTransparency = 1
+    KeyContainer.LayoutOrder = #module.Controls + 1
+    KeyContainer.Parent = module.Container
 
-    -- Create keybind title
-    local keybindTitle = Instance.new("TextLabel")
-    keybindTitle.Name = "Title"
-    keybindTitle.BackgroundTransparency = 1
-    keybindTitle.Position = UDim2.new(0, 0, 0, 0)
-    keybindTitle.Size = UDim2.new(1, 0, 0, 20)
-    keybindTitle.Font = Enum.Font.GothamSemibold
-    keybindTitle.Text = title
-    keybindTitle.TextColor3 = THEME.TextColor
-    keybindTitle.TextSize = 14
-    keybindTitle.TextXAlignment = Enum.TextXAlignment.Left
-    keybindTitle.Parent = keybindContainer
+    -- Create title
+    local KeyTitle = Instance.new("TextLabel")
+    KeyTitle.Name = "Title"
+    KeyTitle.Size = UDim2.new(1, 0, 0, 20)
+    KeyTitle.BackgroundTransparency = 1
+    KeyTitle.Font = Enum.Font.GothamSemibold
+    KeyTitle.Text = name
+    KeyTitle.TextColor3 = COLORS.Text
+    KeyTitle.TextSize = 14
+    KeyTitle.TextXAlignment = Enum.TextXAlignment.Left
+    KeyTitle.Parent = KeyContainer
 
-    -- Create keybind button
-    local keybindButton = Instance.new("TextButton")
-    keybindButton.Name = "KeybindButton"
-    keybindButton.BackgroundColor3 = THEME.SecondaryBackground
-    keybindButton.BorderSizePixel = 0
-    keybindButton.Position = UDim2.new(0, 0, 0, 25)
-    keybindButton.Size = UDim2.new(1, 0, 0, 30)
-    keybindButton.Font = Enum.Font.GothamSemibold
-    keybindButton.Text = defaultKey.Name
-    keybindButton.TextColor3 = THEME.TextColor
-    keybindButton.TextSize = 14
-    keybindButton.Parent = keybindContainer
+    -- Create key button
+    local KeyButton = Instance.new("TextButton")
+    KeyButton.Name = "Button"
+    KeyButton.Size = UDim2.new(1, 0, 0, 30)
+    KeyButton.Position = UDim2.new(0, 0, 0, 25)
+    KeyButton.BackgroundColor3 = COLORS.Background
+    KeyButton.BorderSizePixel = 0
+    KeyButton.Font = Enum.Font.GothamSemibold
+    KeyButton.Text = defaultKey.Name
+    KeyButton.TextColor3 = COLORS.Text
+    KeyButton.TextSize = 14
+    KeyButton.Parent = KeyContainer
 
-    -- Add corner rounding to keybind button
-    local keybindCorner = Instance.new("UICorner")
-    keybindCorner.CornerRadius = UDim.new(0, 5)
-    keybindCorner.Parent = keybindButton
+    -- Add corner radius
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 4)
+    ButtonCorner.Parent = KeyButton
 
-    -- Create keybind control object
-    local keybindControl = {
-        Title = title,
-        Container = keybindContainer,
-        Button = keybindButton,
+    -- Create keybind info
+    local keybind = {
+        Container = KeyContainer,
+        Button = KeyButton,
         Value = defaultKey,
-        Listening = false,
-        Callback = callback
+        Title = name,
+        Listening = false
     }
 
-    -- Add to module's controls
-    table.insert(module.Controls, keybindControl)
+    -- Add to module controls
+    table.insert(module.Controls, keybind)
 
-    -- Add click functionality to start listening for key press
-    keybindButton.MouseButton1Click:Connect(function()
-        keybindControl.Listening = true
-        keybindButton.Text = "..."
-        keybindButton.TextColor3 = THEME.AccentColor
+    -- Start listening for keys
+    KeyButton.MouseButton1Click:Connect(function()
+        keybind.Listening = true
+        KeyButton.Text = "..."
+        KeyButton.TextColor3 = COLORS.Accent
     end)
 
     -- Listen for key press
     userInputService.InputBegan:Connect(function(input)
-        if keybindControl.Listening and input.UserInputType == Enum.UserInputType.Keyboard then
-            keybindControl.Value = input.KeyCode
-            keybindButton.Text = input.KeyCode.Name
-            keybindButton.TextColor3 = THEME.TextColor
-            keybindControl.Listening = false
+        if keybind.Listening and input.UserInputType == Enum.UserInputType.Keyboard then
+            keybind.Value = input.KeyCode
+            KeyButton.Text = input.KeyCode.Name
+            KeyButton.TextColor3 = COLORS.Text
+            keybind.Listening = false
+        end
+    end)
 
-            -- Call the callback function if provided
-            if callback then
-                callback(input.KeyCode)
+    return keybind
+end
+
+-- Initialize modules
+-- Catching category modules
+local magnetsModule = CreateModule("Catching", "Magnets")
+local magnetsTypeDropdown = CreateDropdown(magnetsModule, "Type", {"Blatant", "Legit", "League"}, "Legit")
+local magnetsCustomRadiusSlider = CreateSlider(magnetsModule, "Radius", 0, 70, 20)
+local showMagHitboxModule = CreateModule("Catching", "Visualize Hitbox")
+
+local pullVectorModule = CreateModule("Catching", "PullVector")
+local pullVectorDistanceSlider = CreateSlider(pullVectorModule, "Distance", 0, 100, 50)
+local pullVectorTypeDropdown = CreateDropdown(pullVectorModule, "Type", {"Glide", "Teleport"}, "Glide")
+local pullVectorPowerSlider = CreateSlider(pullVectorModule, "Power", 1, 5, 3)
+
+-- Physics category modules
+local quickTPModule = CreateModule("Physics", "QuickTP")
+local quickTPSpeedSlider = CreateSlider(quickTPModule, "Speed", 1, 5, 3)
+local quickTPBindKeybind = CreateKeybind(quickTPModule, "Keybind", Enum.KeyCode.F)
+
+local clickTackleAimbotModule = CreateModule("Physics", "ClickTackleAimbot")
+local clickTackleAimbotDistanceSlider = CreateSlider(clickTackleAimbotModule, "Distance", 0, 15, 8)
+
+local antiJamModule = CreateModule("Physics", "AntiJam")
+local antiBlockModule = CreateModule("Physics", "AntiBlock")
+local visualiseBallPathModule = CreateModule("Physics", "VisualiseBallPath")
+local noJumpCooldownModule = CreateModule("Physics", "NoJumpCooldown")
+local noFreezeModule = CreateModule("Physics", "NoFreeze")
+
+local optimalJumpPredictionsModule = CreateModule("Physics", "OptimalJump")
+local optimalJumpTypeDropdown = CreateDropdown(optimalJumpPredictionsModule, "Type", {"Jump", "Dive"}, "Jump")
+
+local noBallTrailModule = CreateModule("Physics", "NoBallTrail")
+local bigHeadModule = CreateModule("Physics", "BigHead")
+local bigHeadSizeSlider = CreateSlider(bigHeadModule, "Size", 1, 5, 3)
+
+-- Player category modules
+local angleAssistModule = CreateModule("Player", "AngleAssist")
+local angleAssistJPSlider = CreateSlider(angleAssistModule, "JP", 50, 70, 60)
+
+local speedModule = CreateModule("Player", "Speed")
+local speedValueSlider = CreateSlider(speedModule, "Speed", 20, 23, 21)
+
+local jumpPowerModule = CreateModule("Player", "JumpPower")
+local jumpPowerValueSlider = CreateSlider(jumpPowerModule, "Power", 50, 70, 60)
+
+-- Auto category module
+local autoCapModule = CreateModule("Auto", "AutoCap")
+
+-- Throwing category module
+local qbAimbotModule = CreateModule("Throwing", "QB Aimbot")
+CreateDropdown(qbAimbotModule, "Status", {"Coming Soon"}, "Coming Soon")
+
+-- Configs category modules
+local saveConfigModule = CreateModule("Configs", "Save Config")
+local loadConfigModule = CreateModule("Configs", "Load Config")
+
+-- Config saving and loading
+local function saveConfig(configName)
+    local config = {}
+
+    -- Save all module states
+    for name, module in pairs(Modules) do
+        config[name] = {
+            Enabled = module.Value
+        }
+
+        -- Save all control values
+        if module.Controls then
+            config[name].Controls = {}
+            for _, control in pairs(module.Controls) do
+                config[name].Controls[_ .. "|" .. control.Title or _] = control.Value
             end
         end
-    end)
-
-    return keybindControl
-end
-
--- Create a small version of the UI that appears when the main UI is closed
-local minimizedUI = Instance.new("Frame")
-minimizedUI.Name = "MinimizedUI"
-minimizedUI.BackgroundColor3 = THEME.MainBackground
-minimizedUI.BorderSizePixel = 0
-minimizedUI.Position = UDim2.new(0, 20, 0.5, 0)
-minimizedUI.Size = UDim2.new(0, 50, 0, 50)
-minimizedUI.Active = true
-minimizedUI.Draggable = true
-minimizedUI.Visible = false
-minimizedUI.Parent = screenGui
-
--- Add corner rounding to the minimized UI
-local minimizedCorner = Instance.new("UICorner")
-minimizedCorner.CornerRadius = UDim.new(0, 10)
-minimizedCorner.Parent = minimizedUI
-
--- Add a button to the minimized UI to show the main UI
-local showButton = Instance.new("TextButton")
-showButton.Name = "ShowButton"
-showButton.BackgroundColor3 = THEME.AccentColor
-showButton.BorderSizePixel = 0
-showButton.Position = UDim2.new(0, 5, 0, 5)
-showButton.Size = UDim2.new(1, -10, 1, -10)
-showButton.Font = Enum.Font.GothamBold
-showButton.Text = "EH"
-showButton.TextColor3 = THEME.TextColor
-showButton.TextSize = 20
-showButton.Parent = minimizedUI
-
--- Add corner rounding to the show button
-local showCorner = Instance.new("UICorner")
-showCorner.CornerRadius = UDim.new(0, 8)
-showCorner.Parent = showButton
-
--- Add functionality to the show button
-showButton.MouseButton1Click:Connect(function()
-    minimizedUI.Visible = false
-    mainFrame.Visible = true
-end)
-
--- When the close button is clicked, don't destroy the GUI, just hide it and show the minimized UI
-closeButton.MouseButton1Click:Connect(function()
-    mainFrame.Visible = false
-    minimizedUI.Visible = true
-end)
-
--- Add functionality to minimize button
-local isMinimized = false
-minimizeButton.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-
-    if isMinimized then
-        mainFrame.Size = UDim2.new(0, 600, 0, 40)
-        contentFrame.Visible = false
-        sidebar.Visible = false
-        minimizeButton.Text = "+"
-    else
-        mainFrame.Size = UDim2.new(0, 600, 0, 450)
-        contentFrame.Visible = true
-        sidebar.Visible = true
-        minimizeButton.Text = "-"
-    end
-end)
-
--- Function to create categories
-function EclipseUI:CreateCategory(name)
-    -- Create category button
-    local categoryButton = Instance.new("TextButton")
-    categoryButton.Name = name.."Category"
-    categoryButton.BackgroundColor3 = THEME.MainBackground
-    categoryButton.BorderSizePixel = 0
-    categoryButton.Size = UDim2.new(0.9, 0, 0, 40)
-    categoryButton.Font = Enum.Font.GothamSemibold
-    categoryButton.Text = name
-    categoryButton.TextColor3 = THEME.TextColor
-    categoryButton.TextSize = 16
-    categoryButton.Parent = categoryScrollFrame
-
-    -- Add corner rounding to category button
-    local categoryCorner = Instance.new("UICorner")
-    categoryCorner.CornerRadius = UDim.new(0, 8)
-    categoryCorner.Parent = categoryButton
-
-    -- Create a container for this category's modules
-    local categoryContainer = Instance.new("ScrollingFrame")
-    categoryContainer.Name = name.."Container"
-    categoryContainer.BackgroundTransparency = 1
-    categoryContainer.Size = UDim2.new(1, 0, 1, 0)
-    categoryContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
-    categoryContainer.ScrollBarThickness = 2
-    categoryContainer.ScrollBarImageColor3 = THEME.AccentColor
-    categoryContainer.BorderSizePixel = 0
-    categoryContainer.Visible = false
-    categoryContainer.Parent = contentFrame
-
-    -- Add layout for category modules
-    local moduleListLayout = Instance.new("UIListLayout")
-    moduleListLayout.Padding = UDim.new(0, 10)
-    moduleListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    moduleListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    moduleListLayout.Parent = categoryContainer
-
-    -- Add padding for modules
-    local modulePadding = Instance.new("UIPadding")
-    modulePadding.PaddingTop = UDim.new(0, 10)
-    modulePadding.PaddingRight = UDim.new(0, 15)
-    modulePadding.PaddingBottom = UDim.new(0, 10)
-    modulePadding.PaddingLeft = UDim.new(0, 15)
-    modulePadding.Parent = categoryContainer
-
-    -- Add this category to our categories table
-    local category = {
-        Name = name,
-        Button = categoryButton,
-        Container = categoryContainer,
-        Modules = {}
-    }
-
-    -- Add to categories table
-    table.insert(EclipseUI.Categories, category)
-
-    -- Auto-adjust canvas size
-    moduleListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        categoryContainer.CanvasSize = UDim2.new(0, 0, 0, moduleListLayout.AbsoluteContentSize.Y + 20)
-    end)
-
-    -- Add the selection logic
-    categoryButton.MouseButton1Click:Connect(function()
-        -- Hide all other categories
-        for _, cat in pairs(EclipseUI.Categories) do
-            cat.Container.Visible = false
-            cat.Button.BackgroundColor3 = THEME.MainBackground
-            cat.Button.TextColor3 = THEME.TextColor
-        end
-
-        -- Show this category
-        categoryContainer.Visible = true
-        categoryButton.BackgroundColor3 = THEME.AccentColor
-        categoryButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-
-        EclipseUI.ActiveCategory = category
-    end)
-
-    -- If this is the first category, select it automatically
-    if #EclipseUI.Categories == 1 then
-        categoryButton.BackgroundColor3 = THEME.AccentColor
-        categoryButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        categoryContainer.Visible = true
-        EclipseUI.ActiveCategory = category
     end
 
-    -- Auto-adjust the canvas size for categories
-    categoryListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        categoryScrollFrame.CanvasSize = UDim2.new(0, 0, 0, categoryListLayout.AbsoluteContentSize.Y + 10)
-    end)
-
-    return category
+    -- Save to file
+    writefile("eclipsehub/"..configName..".json", httpService:JSONEncode(config))
 end
 
--- Initialize categories
-local fakeBalls = {}
-local pullVectoredBalls = {}
-local isCatching = false
+local function loadConfig(configName)
+    if not isfile("eclipsehub/"..configName..".json") then return false end
 
--- Create categories
-local catchingCategory = EclipseUI:CreateCategory("Catching")
-local physicsCategory = EclipseUI:CreateCategory("Physics")
-local autoCategory = EclipseUI:CreateCategory("Auto")
-local throwingCategory = EclipseUI:CreateCategory("Throwing")
-local playerCategory = EclipseUI:CreateCategory("Player")
-local configsCategory = EclipseUI:CreateCategory("Configs")
+    local config = httpService:JSONDecode(readfile("eclipsehub/"..configName..".json"))
 
--- Create modules for Catching category
-local magnetsModule = EclipseUI:CreateModule(catchingCategory, "Magnets", false)
-local magnetsTypeSwitch = EclipseUI:CreateSwitch(magnetsModule, "Type", {"Blatant", "Legit", "League"}, "Legit")
-local magnetsCustomRadiusSlider = EclipseUI:CreateSlider(magnetsModule, "Radius", 0, 70, 20)
-local showMagHitboxToggle = EclipseUI:CreateModule(catchingCategory, "Visualize Hitbox", false)
+    -- Load all module states
+    for name, data in pairs(config) do
+        local module = Modules[name]
+        if module then
+            -- Set module state
+            module.Value = data.Enabled
 
-local pullVectorModule = EclipseUI:CreateModule(catchingCategory, "PullVector", false)
-local pullVectorDistanceSlider = EclipseUI:CreateSlider(pullVectorModule, "Distance", 0, 100, 50)
-local pullVectorTypeSwitch = EclipseUI:CreateSwitch(pullVectorModule, "Type", {"Glide", "Teleport"}, "Glide")
-local pullVectorPowerSlider = EclipseUI:CreateSlider(pullVectorModule, "Power", 1, 5, 3)
+            -- Update toggle appearance
+            tweenService:Create(
+                module.Toggle,
+                TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                {BackgroundColor3 = data.Enabled and COLORS.Accent or COLORS.Background}
+            ):Play()
 
--- Implement pull vector functionality
-task.spawn(function()
-    while true do
-        task.wait()
-        local ball = findClosestBall() if not ball then continue end
-        local character = player.Character
-        local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+            tweenService:Create(
+                module.Indicator,
+                TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                {Position = data.Enabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}
+            ):Play()
 
-        if not ball:FindFirstChildWhichIsA("Trail") then continue end
-        if not character or not humanoidRootPart then continue end
-        if not pullVectorModule.Value then continue end
-        if pullVectoredBalls[ball] then continue end
-        if ball.Anchored then continue end
+            -- Load all control values if available
+            if data.Controls and module.Controls then
+                for key, value in pairs(data.Controls) do
+                    for idx, control in pairs(module.Controls) do
+                        local controlKey = idx .. "|" .. (control.Title or idx)
+                        if key == controlKey then
+                            control.Value = value
 
-        local distance = (humanoidRootPart.Position - ball.Position).Magnitude
-        if distance > pullVectorDistanceSlider.Value then continue end
-
-        local direction = (ball.Position - humanoidRootPart.Position).Unit
-
-        if pullVectorTypeSwitch.Value == "Teleport" then
-            pullVectoredBalls[ball] = true
-            local distance = 10 + ((pullVectorPowerSlider.Value - 1) * 5)
-            humanoidRootPart.CFrame += direction * distance
-        else
-            humanoidRootPart.AssemblyLinearVelocity = direction * pullVectorPowerSlider.Value * 25
+                            -- Update control display based on type
+                            if control.ValueLabel then
+                                -- Slider
+                                control.ValueLabel.Text = tostring(value)
+                                local relX = (value - control.Min) / (control.Max - control.Min)
+                                control.Fill.Size = UDim2.new(relX, 0, 1, 0)
+                                control.Knob.Position = UDim2.new(relX, 0, 0.5, 0)
+                            elseif control.Button then
+                                -- Keybind or Dropdown
+                                if control.Listening ~= nil then
+                                    -- Keybind
+                                    control.Button.Text = value.Name
+                                else
+                                    -- Dropdown
+                                    control.Button.Text = value
+                                    -- Update options colors
+                                    for _, option in pairs(control.Options) do
+                                        option.TextColor3 = option.Text == value and COLORS.Accent or COLORS.Text
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
+
+    return true
+end
+
+-- Set up config UI callbacks
+saveConfigModule.Toggle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and saveConfigModule.Value then
+        ConfigAction = "save"
+        ConfigTitle.Text = "Save Config"
+        ConfigUI.Visible = true
+        ConfigInput.Text = ""
+    end
 end)
 
--- Create modules for Physics category
-local quickTPModule = EclipseUI:CreateModule(physicsCategory, "QuickTP", false)
-local quickTPSpeedSlider = EclipseUI:CreateSlider(quickTPModule, "Speed", 1, 5, 3)
-local quickTPBindKeybind = EclipseUI:CreateKeybind(quickTPModule, "Keybind", Enum.KeyCode.F)
+loadConfigModule.Toggle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and loadConfigModule.Value then
+        ConfigAction = "load"
+        ConfigTitle.Text = "Load Config"
+        ConfigUI.Visible = true
+        ConfigInput.Text = ""
+    end
+end)
 
-local clickTackleAimbotModule = EclipseUI:CreateModule(physicsCategory, "ClickTackleAimbot", false)
-local clickTackleAimbotDistanceSlider = EclipseUI:CreateSlider(clickTackleAimbotModule, "Distance", 0, 15, 8)
+ConfirmButton.MouseButton1Click:Connect(function()
+    local configName = ConfigInput.Text
+    if configName == "" then return end
 
-local antiJamModule = EclipseUI:CreateModule(physicsCategory, "AntiJam", false)
-local antiBlockModule = EclipseUI:CreateModule(physicsCategory, "AntiBlock", false)
-local visualiseBallPathModule = EclipseUI:CreateModule(physicsCategory, "VisualiseBallPath", false)
-local noJumpCooldownModule = EclipseUI:CreateModule(physicsCategory, "NoJumpCooldown", false)
-local noFreezeModule = EclipseUI:CreateModule(physicsCategory, "NoFreeze", false)
+    if ConfigAction == "save" then
+        saveConfig(configName)
+    elseif ConfigAction == "load" then
+        loadConfig(configName)
+    end
 
-local optimalJumpPredictionsModule = EclipseUI:CreateModule(physicsCategory, "OptimalJump", false)
-local optimalJumpTypeSwitch = EclipseUI:CreateSwitch(optimalJumpPredictionsModule, "Type", {"Jump", "Dive"}, "Jump")
+    ConfigUI.Visible = false
+end)
 
-local noBallTrailModule = EclipseUI:CreateModule(physicsCategory, "NoBallTrail", false)
-local bigHeadModule = EclipseUI:CreateModule(physicsCategory, "BigHead", false)
-local bigHeadSizeSlider = EclipseUI:CreateSlider(bigHeadModule, "Size", 1, 5, 3)
+-- Add notification when script is loaded
+local NotifFrame = Instance.new("Frame")
+NotifFrame.Name = "Notification"
+NotifFrame.Size = UDim2.new(0, 300, 0, 50)
+NotifFrame.Position = UDim2.new(0.5, -150, 0, -60)
+NotifFrame.BackgroundColor3 = COLORS.Secondary
+NotifFrame.BorderSizePixel = 0
+NotifFrame.Parent = ScreenGui
+NotifFrame.ZIndex = 100
 
--- If not on practice mode and firetouchinterest is available
-if firetouchinterest and not IS_SOLARA then
-    local tackleExtenderModule = EclipseUI:CreateModule(physicsCategory, "TackleExtender", false)
-    local tackleExtenderRadiusSlider = EclipseUI:CreateSlider(tackleExtenderModule, "Radius", 0, 10, 5)
-end
+-- Add corner radius
+local NotifCorner = Instance.new("UICorner")
+NotifCorner.CornerRadius = UDim.new(0, 8)
+NotifCorner.Parent = NotifFrame
 
--- If on practice mode (AC_BYPASS is true)
-if AC_BYPASS then
-    local blockExtenderModule = EclipseUI:CreateModule(physicsCategory, "BlockExtender", false)
-    local blockExtenderRangeSlider = EclipseUI:CreateSlider(blockExtenderModule, "Range", 1, 20, 10)
-    local blockExtenderRangeTransparencySlider = EclipseUI:CreateSlider(blockExtenderModule, "Transparency", 0, 1, 1)
+-- Add notification text
+local NotifText = Instance.new("TextLabel")
+NotifText.Size = UDim2.new(1, 0, 1, 0)
+NotifText.BackgroundTransparency = 1
+NotifText.Font = Enum.Font.GothamBold
+NotifText.Text = "Eclipse Hub Loaded!"
+NotifText.TextColor3 = COLORS.Accent
+NotifText.TextSize = 18
+NotifText.ZIndex = 101
+NotifText.Parent = NotifFrame
 
-    local flyModule = EclipseUI:CreateModule(physicsCategory, "Fly", false)
-    local flySpeedSlider = EclipseUI:CreateSlider(flyModule, "Speed", 1, IS_PRACTICE and 20 or 5, 3)
-end
+-- Animate notification in and out
+tweenService:Create(
+    NotifFrame,
+    TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {Position = UDim2.new(0.5, -150, 0, 20)}
+):Play()
 
--- Create modules for Player category
-local angleAssistModule = EclipseUI:CreateModule(playerCategory, "AngleAssist", false)
-local angleAssistJPSlider = EclipseUI:CreateSlider(angleAssistModule, "JP", 50, 70, 60)
+task.delay(3, function()
+    tweenService:Create(
+        NotifFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+        {Position = UDim2.new(0.5, -150, 0, -60)}
+    ):Play()
 
-local speedModule = EclipseUI:CreateModule(playerCategory, "Speed", false)
-local speedValueSlider = EclipseUI:CreateSlider(speedModule, "Speed", 20, 23, 21)
+    task.delay(0.6, function()
+        NotifFrame:Destroy()
+    end)
+end)
 
-local jumpPowerModule = EclipseUI:CreateModule(playerCategory, "JumpPower", false)
-local jumpPowerValueSlider = EclipseUI:CreateSlider(jumpPowerModule, "Power", 50, 70, 60)
-
--- Create modules for Auto category
-local autoCapModule = EclipseUI:CreateModule(autoCategory, "AutoCap", false)
-
--- Create modules for Throwing category
-local qbAimbotModule = EclipseUI:CreateModule(throwingCategory, "QB Aimbot", false)
-EclipseUI:CreateSwitch(qbAimbotModule, "Status", {"Coming Soon"}, "Coming Soon")
-
--- Create modules for Configs category
-local saveConfigModule = EclipseUI:CreateModule(configsCategory, "Save Config", false)
-local loadConfigModule = EclipseUI:CreateModule(configsCategory, "Load Config", false)
-
--- Implement the catching functionality
-local velocity = {}
-
+-- Character state tracking for catching
 local function onCharacterCatching(character)
     local arm = character:WaitForChild('Left Arm')
 
@@ -1212,6 +1422,28 @@ local function onCharacterCatching(character)
     end)
 end
 
+onCharacterCatching(player.Character or player.CharacterAdded:Wait())
+player.CharacterAdded:Connect(onCharacterCatching)
+
+firetouchinterest = (IS_SOLARA) and function(part2, part1, state)
+    if AC_BYPASS then
+        part1.CFrame = part2.CFrame
+    else
+        state = state == 1
+        local fakeBall = fakeBalls[part1]
+        if not fakeBall then return end
+
+        local direction = (part2.Position - fakeBall.Position).Unit
+        local distance = (part2.Position - fakeBall.Position).Magnitude
+
+        for i = 1,5,1 do
+            local percentage = i/5 + Random.new():NextNumber(0.01, 0.02)
+            part1.CFrame = fakeBall.CFrame + (direction * distance * percentage)
+        end
+    end
+end or firetouchinterest
+
+-- Ball tracking and fake ball implementation
 workspace.ChildAdded:Connect(function(ball)
     if ball.Name ~= "Football" then return end
     if not ball:IsA("BasePart") then return end
@@ -1240,7 +1472,7 @@ workspace.ChildAdded:Connect(function(ball)
                 fakeBall.CFrame = CFrame.lookAt(fakeBall.Position, fakeBall.Position + initalVelocity) * CFrame.Angles(math.rad(90), math.rad(spiralDegrees), 0)
 
                 if ball:FindFirstChildWhichIsA("Trail") then
-                    ball:FindFirstChildWhichIsA("Trail").Enabled = noBallTrailModule.Value
+                    ball:FindFirstChildWhichIsA("Trail").Enabled = not noBallTrailModule.Value
                 end
             end
             fakeBall:Destroy()
@@ -1276,17 +1508,15 @@ task.spawn(function()
             continue
         end
 
-        local magnetsTypeValue = magnetsTypeSwitch.Value
-
-        if magnetsTypeValue == "League" then
+        if magnetsTypeDropdown.Value == "League" then
             local predictedPosition = (fakeBalls[ball] or ball).Position + (velocity[ball] * ping)
             local distance = (catchPart.Position - predictedPosition).Magnitude
 
             -- Position the hitbox directly at the ball position, not in front of it
             part.Position = (fakeBalls[ball] or ball).Position
             part.Size = Vector3.new(magnetsCustomRadiusSlider.Value, magnetsCustomRadiusSlider.Value, magnetsCustomRadiusSlider.Value)
-            part.Parent = showMagHitboxToggle.Value and workspace or nil
-            part.Color = THEME.AccentColor -- Light blue color
+            part.Parent = showMagHitboxModule.Value and workspace or nil
+            part.Color = COLORS.Accent -- Light blue color
             part.Material = Enum.Material.ForceField -- Use ForceField for smoother edge appearance
             part.Transparency = 0.5 -- Adjust transparency to make it slightly more visible
 
@@ -1296,13 +1526,13 @@ task.spawn(function()
             firetouchinterest(catchPart, ball, 1)
         else
             local distance = (catchPart.Position - ball.Position).Magnitude
-            local radius = (magnetsTypeValue == "Blatant" and 50 or 6)
+            local radius = (magnetsTypeDropdown.Value == "Blatant" and 50 or 6)
 
             -- Position the hitbox directly at the ball position
             part.Position = (fakeBalls[ball] or ball).Position
             part.Size = Vector3.new(radius, radius, radius)
-            part.Parent = showMagHitboxToggle.Value and workspace or nil
-            part.Color = THEME.AccentColor -- Light blue color
+            part.Parent = showMagHitboxModule.Value and workspace or nil
+            part.Color = COLORS.Accent -- Light blue color
             part.Material = Enum.Material.ForceField -- Use ForceField for smoother edge appearance
             part.Transparency = 0.5 -- Adjust transparency to make it slightly more visible
 
@@ -1316,328 +1546,31 @@ task.spawn(function()
     end
 end)
 
--- Implement quick teleport functionality
-local quickTPCooldown = os.clock()
-
-userInputService.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode ~= quickTPBindKeybind.Value then return end
-
-    local character = player.Character
-    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-    local humanoid = character and character:FindFirstChild("Humanoid")
-
-    if not quickTPModule.Value then return end
-    if not character or not humanoidRootPart or not humanoid then return end
-    if (os.clock() - quickTPCooldown) < 0.1 then return end
-
-    local speed = 2 + (quickTPSpeedSlider.Value / 4)
-
-    humanoidRootPart.CFrame += humanoid.MoveDirection * speed
-    quickTPCooldown = os.clock()
-end)
-
--- Implement click tackle aimbot
-mouse.Button1Down:Connect(function()
-    if not clickTackleAimbotModule.Value then return end
-
-    local possessor = findPossessor()
-    local character = player.Character
-    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-
-    if not character or not humanoidRootPart then return end
-    if not possessor then return end
-
-    local distance = (possessor.HumanoidRootPart.Position - humanoidRootPart.Position).Magnitude
-    if distance > clickTackleAimbotDistanceSlider.Value then return end
-
-    humanoidRootPart.CFrame = possessor.HumanoidRootPart.CFrame
-end)
-
--- Implement character physics changes
-local function onCharacterPhysics(char)
-    local humanoid = char:WaitForChild("Humanoid")
-
-    char.DescendantAdded:Connect(function(v)
+-- Implement pull vector functionality
+task.spawn(function()
+    while true do
         task.wait()
-        if v.Name:match("FFmover") and antiBlockModule.Value then
-            v:Destroy()
-        end
-    end)
+        local ball = findClosestBall() if not ball then continue end
+        local character = player.Character
+        local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
 
-    task.spawn(function()
-        while true do
-            task.wait()
-            if noJumpCooldownModule.Value then
-                humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
-            end
+        if not ball:FindFirstChildWhichIsA("Trail") then continue end
+        if not character or not humanoidRootPart then continue end
+        if not pullVectorModule.Value then continue end
+        if pullVectoredBalls[ball] then continue end
+        if ball.Anchored then continue end
 
-            local torso = char:FindFirstChild("Torso")
-            local head = char:FindFirstChild("Head")
+        local distance = (humanoidRootPart.Position - ball.Position).Magnitude
+        if distance > pullVectorDistanceSlider.Value then continue end
 
-            if not torso or not head then return end
+        local direction = (ball.Position - humanoidRootPart.Position).Unit
 
-            if humanoid:GetState() == Enum.HumanoidStateType.Running and values.Status.Value == "InPlay" then
-                torso.CanCollide = not antiJamModule.Value
-                head.CanCollide = not antiJamModule.Value
-            else
-                torso.CanCollide = true
-                head.CanCollide = true
-            end
-        end
-    end)
-end
-
--- Apply character functions to current character and future characters
-onCharacterCatching(player.Character or player.CharacterAdded:Wait())
-onCharacterPhysics(player.Character or player.CharacterAdded:Wait())
-
-player.CharacterAdded:Connect(onCharacterCatching)
-player.CharacterAdded:Connect(onCharacterPhysics)
-
--- Implement speed modifications
-runService:BindToRenderStep("walkSpeed", Enum.RenderPriority.Character.Value, function()
-    local character = player.Character
-    local humanoid = character and character:FindFirstChild("Humanoid")
-
-    if not character or not humanoid then return end
-    if humanoid:GetState() ~= Enum.HumanoidStateType.Running then return end
-    if humanoid.WalkSpeed == 0 and not noFreezeModule.Value then return end
-    if not character:FindFirstChild("HumanoidRootPart") then return end
-
-    local moveDirection = ((os.clock() - (moveToUsing[#moveToUsing] or 0)) < 0.5 and (humanoid.WalkToPoint - character.HumanoidRootPart.Position).Unit) or (humanoid.MoveDirection)
-    local currentVel = character.HumanoidRootPart.AssemblyLinearVelocity
-
-    if speedModule.Value or noFreezeModule.Value then
-        local speedVal = speedModule.Value and (speedValueSlider.Value > 20 and speedValueSlider.Value) or 20
-        character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(moveDirection.X * speedVal, currentVel.Y, moveDirection.Z * speedVal)
-    end
-end)
-
--- Notify on load
-local notificationFrame = Instance.new("Frame")
-notificationFrame.Name = "Notification"
-notificationFrame.BackgroundColor3 = THEME.MainBackground
-notificationFrame.BorderSizePixel = 0
-notificationFrame.Position = UDim2.new(0.5, -150, 0, -40)
-notificationFrame.Size = UDim2.new(0, 300, 0, 40)
-notificationFrame.Parent = screenGui
-
--- Add corner rounding
-local notificationCorner = Instance.new("UICorner")
-notificationCorner.CornerRadius = UDim.new(0, 10)
-notificationCorner.Parent = notificationFrame
-
--- Add notification text
-local notificationText = Instance.new("TextLabel")
-notificationText.Name = "Text"
-notificationText.BackgroundTransparency = 1
-notificationText.Position = UDim2.new(0, 0, 0, 0)
-notificationText.Size = UDim2.new(1, 0, 1, 0)
-notificationText.Font = Enum.Font.GothamSemibold
-notificationText.Text = "Eclipse Hub Loaded!"
-notificationText.TextColor3 = THEME.AccentColor
-notificationText.TextSize = 16
-notificationText.Parent = notificationFrame
-
--- Show and hide notification with animation
-tweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -150, 0, 20)}):Play()
-
-task.delay(3, function()
-    tweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -150, 0, -40)}):Play()
-    task.delay(0.5, function()
-        notificationFrame:Destroy()
-    end)
-end)
-
--- Add config saving and loading functionality
--- Function to save config
-local function saveConfig(configName)
-    local config = {}
-
-    -- Save all module states
-    for name, module in pairs(EclipseUI.Modules) do
-        config[name] = {
-            Enabled = module.Value
-        }
-
-        -- Save all control values
-        if module.Controls then
-            config[name].Controls = {}
-            for _, control in pairs(module.Controls) do
-                config[name].Controls[control.Title] = control.Value
-            end
+        if pullVectorTypeDropdown.Value == "Teleport" then
+            pullVectoredBalls[ball] = true
+            local distance = 10 + ((pullVectorPowerSlider.Value - 1) * 5)
+            humanoidRootPart.CFrame += direction * distance
+        else
+            humanoidRootPart.AssemblyLinearVelocity = direction * pullVectorPowerSlider.Value * 25
         end
     end
-
-    -- Save to file
-    writefile("eclipsehub/"..configName..".json", httpService:JSONEncode(config))
-end
-
--- Function to load config
-local function loadConfig(configName)
-    if not isfile("eclipsehub/"..configName..".json") then return false end
-
-    local config = httpService:JSONDecode(readfile("eclipsehub/"..configName..".json"))
-
-    -- Load all module states
-    for name, data in pairs(config) do
-        local module = EclipseUI.Modules[name]
-        if module then
-            -- Set module state
-            module.Value = data.Enabled
-            module.Enabled = data.Enabled
-            module.ToggleButton.BackgroundColor3 = data.Enabled and THEME.ToggleOn or THEME.ToggleOff
-
-            -- Update toggle circle position
-            local newPosition = data.Enabled and UDim2.new(1, -22, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
-            module.ToggleCircle.Position = newPosition
-
-            -- Load all control values
-            if data.Controls and module.Controls then
-                for title, value in pairs(data.Controls) do
-                    for _, control in pairs(module.Controls) do
-                        if control.Title == title then
-                            control.Value = value
-
-                            -- Update UI based on control type
-                            if control.Button and control.Button:IsA("TextButton") then
-                                control.Button.Text = tostring(value)
-                            elseif control.Fill and control.Thumb then
-                                -- Update slider
-                                local relativePos = (value - control.Min) / (control.Max - control.Min)
-                                control.Fill.Size = UDim2.new(relativePos, 0, 1, 0)
-                                control.Thumb.Position = UDim2.new(relativePos, 0, 0.5, 0)
-
-                                -- Update value display if present
-                                for _, child in pairs(control.Container:GetChildren()) do
-                                    if child.Name == "Value" and child:IsA("TextLabel") then
-                                        child.Text = tostring(value)
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    return true
-end
-
--- Create config UI for saving and loading
-local configNameBox
-local configAction = nil
-
-local function createConfigUI()
-    -- Create Config UI Frame
-    local configFrame = Instance.new("Frame")
-    configFrame.Name = "ConfigFrame"
-    configFrame.BackgroundColor3 = THEME.SecondaryBackground
-    configFrame.BorderSizePixel = 0
-    configFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
-    configFrame.Size = UDim2.new(0, 300, 0, 150)
-    configFrame.Visible = false
-    configFrame.ZIndex = 100
-    configFrame.Parent = screenGui
-
-    -- Add corner rounding
-    local configCorner = Instance.new("UICorner")
-    configCorner.CornerRadius = UDim.new(0, 10)
-    configCorner.Parent = configFrame
-
-    -- Add title
-    local configTitle = Instance.new("TextLabel")
-    configTitle.Name = "Title"
-    configTitle.BackgroundTransparency = 1
-    configTitle.Position = UDim2.new(0, 0, 0, 10)
-    configTitle.Size = UDim2.new(1, 0, 0, 30)
-    configTitle.Font = Enum.Font.GothamBold
-    configTitle.Text = "Config"
-    configTitle.TextColor3 = THEME.AccentColor
-    configTitle.TextSize = 18
-    configTitle.ZIndex = 101
-    configTitle.Parent = configFrame
-
-    -- Add text input box
-    configNameBox = Instance.new("TextBox")
-    configNameBox.Name = "ConfigName"
-    configNameBox.BackgroundColor3 = THEME.MainBackground
-    configNameBox.BorderSizePixel = 0
-    configNameBox.Position = UDim2.new(0.5, -125, 0, 60)
-    configNameBox.Size = UDim2.new(0, 250, 0, 30)
-    configNameBox.Font = Enum.Font.GothamSemibold
-    configNameBox.PlaceholderText = "Enter config name..."
-    configNameBox.Text = ""
-    configNameBox.TextColor3 = THEME.TextColor
-    configNameBox.TextSize = 14
-    configNameBox.ZIndex = 101
-    configNameBox.Parent = configFrame
-
-    -- Add corner rounding to text box
-    local textBoxCorner = Instance.new("UICorner")
-    textBoxCorner.CornerRadius = UDim.new(0, 5)
-    textBoxCorner.Parent = configNameBox
-
-    -- Add confirm button
-    local confirmButton = Instance.new("TextButton")
-    confirmButton.Name = "ConfirmButton"
-    confirmButton.BackgroundColor3 = THEME.AccentColor
-    confirmButton.BorderSizePixel = 0
-    confirmButton.Position = UDim2.new(0.5, -75, 0, 105)
-    confirmButton.Size = UDim2.new(0, 150, 0, 30)
-    confirmButton.Font = Enum.Font.GothamSemibold
-    confirmButton.Text = "Confirm"
-    confirmButton.TextColor3 = THEME.TextColor
-    confirmButton.TextSize = 14
-    confirmButton.ZIndex = 101
-    confirmButton.Parent = configFrame
-
-    -- Add corner rounding to confirm button
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 5)
-    buttonCorner.Parent = confirmButton
-
-    -- Add button functionality
-    confirmButton.MouseButton1Click:Connect(function()
-        local configName = configNameBox.Text
-        if configName == "" then return end
-
-        if configAction == "save" then
-            saveConfig(configName)
-        elseif configAction == "load" then
-            loadConfig(configName)
-        end
-
-        configFrame.Visible = false
-        configNameBox.Text = ""
-    end)
-
-    return configFrame
-end
-
-local configUI = createConfigUI()
-
--- Add callbacks for save and load config buttons
-saveConfigModule.ToggleButton.MouseButton1Click:Connect(function()
-    if not saveConfigModule.Value then return end
-    configAction = "save"
-    configUI.Title.Text = "Save Config"
-    configUI.Visible = true
-    saveConfigModule.Value = false
-    saveConfigModule.Enabled = false
-    saveConfigModule.ToggleButton.BackgroundColor3 = THEME.ToggleOff
-    saveConfigModule.ToggleCircle.Position = UDim2.new(0, 2, 0.5, 0)
-end)
-
-loadConfigModule.ToggleButton.MouseButton1Click:Connect(function()
-    if not loadConfigModule.Value then return end
-    configAction = "load"
-    configUI.Title.Text = "Load Config"
-    configUI.Visible = true
-    loadConfigModule.Value = false
-    loadConfigModule.Enabled = false
-    loadConfigModule.ToggleButton.BackgroundColor3 = THEME.ToggleOff
-    loadConfigModule.ToggleCircle.Position = UDim2.new(0, 2, 0.5, 0)
 end)
