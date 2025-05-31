@@ -144,7 +144,7 @@ end
 local ping = 0
 local fps = 0
 
--- Load SenseUI library
+-- ORIGINAL SCRIPT CONTINUES - Load SenseUI library (keeping original UI as backup)
 local SenseUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/RealVeylo/SenseUI/refs/heads/main/lua"))()
 
 local function safeIndex(t, index)
@@ -163,110 +163,7 @@ local function safeIndex(t, index)
     end
 end
 
--- Extended Tab functionality for SenseUI
-local function extendTabFunctionality(tab)
-    function tab:CreateKeybind(text, defaultKey, callback)
-        text = text or "New Keybind"
-        defaultKey = defaultKey or Enum.KeyCode.F
-        callback = callback or function() end
-
-        -- Create the keybind in the system
-        local keybindName = text:gsub("%s+", "")
-        local keybind = KeybindSystem:CreateKeybind(keybindName, defaultKey, callback)
-
-        -- Create UI element similar to button but for keybind
-        local KeybindLabel = Instance.new("TextLabel")
-        local KeybindButton = Instance.new("TextButton")
-        local KeybindButtonBG = Instance.new("ImageLabel")
-        local KeybindCorner = Instance.new("UICorner")
-
-        KeybindLabel.Name = "KeybindLabel"
-        KeybindLabel.Parent = tab.Frame -- Use the frame from the tab
-        KeybindLabel.BackgroundTransparency = 1
-        KeybindLabel.Size = UDim2.new(0, 200, 0, 50)
-        KeybindLabel.Font = Enum.Font.SourceSansSemibold
-        KeybindLabel.Text = text
-        KeybindLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        KeybindLabel.TextSize = 14
-
-        KeybindButton.Name = "KeybindButton"
-        KeybindButton.Parent = KeybindLabel
-        KeybindButton.BackgroundTransparency = 1
-        KeybindButton.Position = UDim2.new(1, 0, 0.3, 0)
-        KeybindButton.Size = UDim2.new(0, 60, 0, 20)
-        KeybindButton.Font = Enum.Font.SourceSansBold
-        KeybindButton.Text = KeybindSystem:GetKeyName(defaultKey)
-        KeybindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        KeybindButton.TextSize = 12
-        KeybindButton.ZIndex = 2
-
-        KeybindButtonBG.Name = "KeybindButtonBG"
-        KeybindButtonBG.Parent = KeybindButton
-        KeybindButtonBG.BackgroundTransparency = 1
-        KeybindButtonBG.Size = UDim2.new(1, 0, 1, 0)
-        KeybindButtonBG.Image = "rbxassetid://3570695787"
-        KeybindButtonBG.ImageColor3 = Color3.fromRGB(35, 35, 35)
-        KeybindButtonBG.ScaleType = Enum.ScaleType.Slice
-        KeybindButtonBG.SliceCenter = Rect.new(100, 100, 100, 100)
-        KeybindButtonBG.SliceScale = 0.020
-
-        KeybindCorner.CornerRadius = UDim.new(0, 4)
-        KeybindCorner.Parent = KeybindButtonBG
-
-        local listening = false
-        KeybindButton.MouseButton1Click:Connect(function()
-            if listening then return end
-            listening = true
-            KeybindButton.Text = "..."
-            KeybindButtonBG.ImageColor3 = Color3.fromRGB(0, 255, 255)
-
-            local connection
-            connection = userInputService.InputBegan:Connect(function(input, gameProcessed)
-                if input.UserInputType == Enum.UserInputType.Keyboard then
-                    keybind.key = input.KeyCode
-                    KeybindButton.Text = KeybindSystem:GetKeyName(input.KeyCode)
-                    KeybindButtonBG.ImageColor3 = Color3.fromRGB(35, 35, 35)
-                    listening = false
-                    connection:Disconnect()
-                end
-            end)
-        end)
-
-        return keybind
-    end
-
-    return tab
-end
-
--- Create window and tabs using SenseUI (REMOVED Throwing tab)
-local Window = SenseUI:CreateWindow("Sense Hub")
-local Tabs = {
-    Catching = extendTabFunctionality(Window:CreateTab("Catching")),
-    Physics = extendTabFunctionality(Window:CreateTab("Physics")),
-    Auto = extendTabFunctionality(Window:CreateTab("Auto")),
-    Player = extendTabFunctionality(Window:CreateTab("Player")),
-    Settings = extendTabFunctionality(Window:CreateTab("Settings"))
-}
-
--- Set the first tab as active
-Tabs.Catching:Show()
-
--- Options table to store values
-local Options = {}
-
--- Helper function to create option storage
-local function createOption(name, defaultValue)
-    Options[name] = {
-        Value = defaultValue,
-        Default = defaultValue,
-        SetValue = function(self, value)
-            self.Value = value
-        end
-    }
-    return Options[name]
-end
-
--- Config System
+-- ORIGINAL Config System (Enhanced)
 local ConfigSystem = {}
 ConfigSystem.configs = {}
 
@@ -301,6 +198,10 @@ function ConfigSystem:LoadConfig(name)
             for optionName, value in pairs(configData) do
                 if Options[optionName] then
                     Options[optionName]:SetValue(value)
+                    -- Update UI elements if they exist
+                    if getgenv().MillenniumUI and getgenv().MillenniumUI.UpdateOption then
+                        getgenv().MillenniumUI:UpdateOption(optionName, value)
+                    end
                 end
             end
             return true
@@ -338,7 +239,7 @@ function ConfigSystem:DeleteConfig(name)
     return success
 end
 
--- Keybind System
+-- ORIGINAL Keybind System
 local KeybindSystem = {}
 KeybindSystem.keybinds = {}
 
@@ -362,51 +263,19 @@ end
 
 function KeybindSystem:GetKeyName(keyCode)
     local keyNames = {
-        [Enum.KeyCode.Q] = "Q", 
-        [Enum.KeyCode.W] = "W", 
-        [Enum.KeyCode.E] = "E", 
-        [Enum.KeyCode.R] = "R",
-        [Enum.KeyCode.T] = "T", 
-        [Enum.KeyCode.Y] = "Y", 
-        [Enum.KeyCode.U] = "U", 
-        [Enum.KeyCode.I] = "I",
-        [Enum.KeyCode.O] = "O", 
-        [Enum.KeyCode.P] = "P", 
-        [Enum.KeyCode.A] = "A", 
-        [Enum.KeyCode.S] = "S",
-        [Enum.KeyCode.D] = "D", 
-        [Enum.KeyCode.F] = "F", 
-        [Enum.KeyCode.G] = "G", 
-        [Enum.KeyCode.H] = "H",
-        [Enum.KeyCode.J] = "J", 
-        [Enum.KeyCode.K] = "K", 
-        [Enum.KeyCode.L] = "L", 
-        [Enum.KeyCode.Z] = "Z",
-        [Enum.KeyCode.X] = "X", 
-        [Enum.KeyCode.C] = "C", 
-        [Enum.KeyCode.V] = "V", 
-        [Enum.KeyCode.B] = "B",
-        [Enum.KeyCode.N] = "N", 
-        [Enum.KeyCode.M] = "M", 
-        [Enum.KeyCode.One] = "1", 
-        [Enum.KeyCode.Two] = "2",
-        [Enum.KeyCode.Three] = "3", 
-        [Enum.KeyCode.Four] = "4", 
-        [Enum.KeyCode.Five] = "5", 
-        [Enum.KeyCode.Six] = "6",
-        [Enum.KeyCode.Seven] = "7", 
-        [Enum.KeyCode.Eight] = "8", 
-        [Enum.KeyCode.Nine] = "9", 
-        [Enum.KeyCode.Zero] = "0",
-        [Enum.KeyCode.LeftShift] = "LShift", 
-        [Enum.KeyCode.RightShift] = "RShift", 
-        [Enum.KeyCode.LeftControl] = "LCtrl",
-        [Enum.KeyCode.RightControl] = "RCtrl", 
-        [Enum.KeyCode.LeftAlt] = "LAlt", 
-        [Enum.KeyCode.RightAlt] = "RAlt",
-        [Enum.KeyCode.Tab] = "Tab", 
-        [Enum.KeyCode.Space] = "Space", 
-        [Enum.KeyCode.Return] = "Enter"
+        [Enum.KeyCode.Q] = "Q", [Enum.KeyCode.W] = "W", [Enum.KeyCode.E] = "E", [Enum.KeyCode.R] = "R",
+        [Enum.KeyCode.T] = "T", [Enum.KeyCode.Y] = "Y", [Enum.KeyCode.U] = "U", [Enum.KeyCode.I] = "I",
+        [Enum.KeyCode.O] = "O", [Enum.KeyCode.P] = "P", [Enum.KeyCode.A] = "A", [Enum.KeyCode.S] = "S",
+        [Enum.KeyCode.D] = "D", [Enum.KeyCode.F] = "F", [Enum.KeyCode.G] = "G", [Enum.KeyCode.H] = "H",
+        [Enum.KeyCode.J] = "J", [Enum.KeyCode.K] = "K", [Enum.KeyCode.L] = "L", [Enum.KeyCode.Z] = "Z",
+        [Enum.KeyCode.X] = "X", [Enum.KeyCode.C] = "C", [Enum.KeyCode.V] = "V", [Enum.KeyCode.B] = "B",
+        [Enum.KeyCode.N] = "N", [Enum.KeyCode.M] = "M", [Enum.KeyCode.One] = "1", [Enum.KeyCode.Two] = "2",
+        [Enum.KeyCode.Three] = "3", [Enum.KeyCode.Four] = "4", [Enum.KeyCode.Five] = "5", [Enum.KeyCode.Six] = "6",
+        [Enum.KeyCode.Seven] = "7", [Enum.KeyCode.Eight] = "8", [Enum.KeyCode.Nine] = "9", [Enum.KeyCode.Zero] = "0",
+        [Enum.KeyCode.LeftShift] = "LShift", [Enum.KeyCode.RightShift] = "RShift",
+        [Enum.KeyCode.LeftControl] = "LCtrl", [Enum.KeyCode.RightControl] = "RCtrl",
+        [Enum.KeyCode.LeftAlt] = "LAlt", [Enum.KeyCode.RightAlt] = "RAlt",
+        [Enum.KeyCode.Tab] = "Tab", [Enum.KeyCode.Space] = "Space", [Enum.KeyCode.Return] = "Enter"
     }
     return keyNames[keyCode] or tostring(keyCode):gsub("Enum.KeyCode.", "")
 end
@@ -422,332 +291,73 @@ userInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Create toggles and sliders using SenseUI
+-- Options table to store values
+local Options = {}
 
--- PLAYER TAB (Moved from Throwing tab)
+-- Helper function to create option storage
+local function createOption(name, defaultValue)
+    Options[name] = {
+        Value = defaultValue,
+        Default = defaultValue,
+        SetValue = function(self, value)
+            self.Value = value
+        end
+    }
+    return Options[name]
+end
+
+-- ALL ORIGINAL OPTIONS CREATION
 local QuickTPToggle = createOption("QuickTP", false)
-Tabs.Player:CreateToggle("Quick TP", function(value)
-    QuickTPToggle:SetValue(value)
-end)
-
 local QuickTPSpeed = createOption("QuickTPSpeed", 3)
-Tabs.Player:CreateSlider("Speed", 1, 5, function(value)
-    QuickTPSpeed:SetValue(value)
-end)
-
--- Create keybind for Quick TP
-local quickTPCooldown = os.clock()
-local QuickTPKeybind = Tabs.Player:CreateKeybind("Quick TP Key", Enum.KeyCode.F, function()
-    if not Options.QuickTP or not Options.QuickTP.Value then return end
-
-    local character = player.Character
-    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-    local humanoid = character and character:FindFirstChild("Humanoid")
-
-    if not character or not humanoidRootPart or not humanoid then return end
-    if (os.clock() - quickTPCooldown) < 0.1 then return end
-
-    local speed = 2 + ((Options.QuickTPSpeed and Options.QuickTPSpeed.Value or 3) / 4)
-
-    humanoidRootPart.CFrame += humanoid.MoveDirection * speed
-    quickTPCooldown = os.clock()
-end)
-
--- Fixed Dive Power (moved from throwing tab)
 local DivePowerToggle = createOption("DivePower", false)
-Tabs.Player:CreateToggle("Dive Power", function(value)
-    DivePowerToggle:SetValue(value)
-end)
-
 local DivePowerDistance = createOption("DivePowerDistance", 3)
-Tabs.Player:CreateSlider("Dive Distance", 0, 10, function(value)
-    DivePowerDistance:SetValue(value)
-end)
-
--- Speed controls
 local SpeedToggle = createOption("Speed", false)
-Tabs.Player:CreateToggle("Speed", function(value)
-    SpeedToggle:SetValue(value)
-    if value then
-        local character = player.Character
-        local humanoid = character and character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = Options.SpeedValue.Value
-        end
-    end
-end)
-
 local SpeedValue = createOption("SpeedValue", 22)
-Tabs.Player:CreateSlider("Speed Value", 20, 23, function(value)
-    SpeedValue:SetValue(value)
-    if Options.Speed and Options.Speed.Value then
-        local character = player.Character
-        local humanoid = character and character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = value
-        end
-    end
-end)
-
 local JumpPowerToggle = createOption("JumpPower", false)
-Tabs.Player:CreateToggle("Jump Power", function(value)
-    JumpPowerToggle:SetValue(value)
-end)
-
 local JumpPowerValue = createOption("JumpPowerValue", 60)
-Tabs.Player:CreateSlider("Power", 50, 70, function(value)
-    JumpPowerValue:SetValue(value)
-    if Options.JumpPower and Options.JumpPower.Value then
-        local character = player.Character
-        local humanoid = character and character:FindFirstChild("Humanoid")
-        if humanoid then
-            if AC_BYPASS then
-                humanoid.JumpPower = value
-            end
-        end
-    end
-end)
-
 local AngleAssistToggle = createOption("AngleAssist", false)
-Tabs.Player:CreateToggle("Angle Enhancer", function(value)
-    AngleAssistToggle:SetValue(value)
-end)
-
 local AngleAssistJP = createOption("AngleAssistJP", 60)
-Tabs.Player:CreateSlider("JP", 50, 70, function(value)
-    AngleAssistJP:SetValue(value)
-    if Options.AngleAssist and Options.AngleAssist.Value then
-        local character = player.Character
-        local humanoid = character and character:FindFirstChild("Humanoid")
-        if humanoid and AC_BYPASS then
-            humanoid.JumpPower = value
-        end
-    end
-end)
-
--- PHYSICS TAB
 local ClickTackleAimbotToggle = createOption("ClickTackleAimbot", false)
-Tabs.Physics:CreateToggle("Click Tackle Aimbot", function(value)
-    ClickTackleAimbotToggle:SetValue(value)
-end)
-
 local ClickTackleAimbotDistance = createOption("ClickTackleAimbotDistance", 7)
-Tabs.Physics:CreateSlider("Distance", 0, 15, function(value)
-    ClickTackleAimbotDistance:SetValue(value)
-end)
-
 local AntiJamToggle = createOption("AntiJam", false)
-Tabs.Physics:CreateToggle("Anti Jam", function(value)
-    AntiJamToggle:SetValue(value)
-end)
-
 local AntiBlockToggle = createOption("AntiBlock", false)
-Tabs.Physics:CreateToggle("Anti Block", function(value)
-    AntiBlockToggle:SetValue(value)
-end)
-
 local VisualizeBallPathToggle = createOption("VisualizeBallPath", false)
-Tabs.Physics:CreateToggle("Visualize Ball Path", function(value)
-    VisualizeBallPathToggle:SetValue(value)
-end)
-
 local NoJumpCooldownToggle = createOption("NoJumpCooldown", false)
-Tabs.Physics:CreateToggle("No Jump Cooldown", function(value)
-    NoJumpCooldownToggle:SetValue(value)
-end)
-
 local NoFreezeToggle = createOption("NoFreeze", false)
-Tabs.Physics:CreateToggle("No Freeze", function(value)
-    NoFreezeToggle:SetValue(value)
-end)
-
 local OptimalJumpToggle = createOption("OptimalJump", false)
-Tabs.Physics:CreateToggle("Optimal Jump", function(value)
-    OptimalJumpToggle:SetValue(value)
-end)
-
 local OptimalJumpType = createOption("OptimalJumpType", "Jump")
-Tabs.Physics:CreateDropdown("Type", {"Jump", "Dive"}, function(value)
-    OptimalJumpType:SetValue(value)
-end)
-
 local NoBallTrailToggle = createOption("NoBallTrail", false)
-Tabs.Physics:CreateToggle("No Ball Trail", function(value)
-    NoBallTrailToggle:SetValue(value)
-end)
-
 local BigHeadToggle = createOption("BigHead", false)
-Tabs.Physics:CreateToggle("Big Head", function(value)
-    BigHeadToggle:SetValue(value)
-end)
-
 local BigHeadSize = createOption("BigHeadSize", 3)
-Tabs.Physics:CreateSlider("Size", 1, 5, function(value)
-    BigHeadSize:SetValue(value)
-end)
-
 local AntiOOBToggle = createOption("AntiOOB", false)
-Tabs.Physics:CreateToggle("Anti Out Of Bounds", function(value)
-    AntiOOBToggle:SetValue(value)
-end)
-
--- CATCHING TAB
 local MagnetsToggle = createOption("Magnets", false)
-Tabs.Catching:CreateToggle("Magnets", function(value)
-    MagnetsToggle:SetValue(value)
-end)
-
 local MagnetsType = createOption("MagnetsType", "League")
-Tabs.Catching:CreateDropdown("Type", {"Blatant", "Legit", "League"}, function(value)
-    MagnetsType:SetValue(value)
-end)
-
 local MagnetsCustomRadius = createOption("MagnetsCustomRadius", 35)
-Tabs.Catching:CreateSlider("Radius", 0, 70, function(value)
-    MagnetsCustomRadius:SetValue(value)
-end)
-
 local ShowMagHitbox = createOption("ShowMagHitbox", false)
-Tabs.Catching:CreateToggle("Visualise Hitbox", function(value)
-    ShowMagHitbox:SetValue(value)
-end)
-
 local PullVectorToggle = createOption("PullVector", false)
-Tabs.Catching:CreateToggle("Pull Vector", function(value)
-    PullVectorToggle:SetValue(value)
-end)
-
 local PullVectorDistance = createOption("PullVectorDistance", 50)
-Tabs.Catching:CreateSlider("Distance", 0, 100, function(value)
-    PullVectorDistance:SetValue(value)
-end)
-
 local PullVectorType = createOption("PullVectorType", "Glide")
-Tabs.Catching:CreateDropdown("Type", {"Glide", "Teleport"}, function(value)
-    PullVectorType:SetValue(value)
-end)
-
 local PullVectorPower = createOption("PullVectorPower", 3)
-Tabs.Catching:CreateSlider("Power", 1, 5, function(value)
-    PullVectorPower:SetValue(value)
-end)
-
 local FreezeTechToggle = createOption("FreezeTech", false)
-Tabs.Catching:CreateToggle("Freeze Tech", function(value)
-    FreezeTechToggle:SetValue(value)
-end)
-
 local FreezeTechDuration = createOption("FreezeTechDuration", 0.5)
-Tabs.Catching:CreateSlider("Freeze Duration", 0, 3, function(value)
-    FreezeTechDuration:SetValue(value)
-end)
-
--- AUTO TAB
 local AutoCapToggle = createOption("AutoCap", false)
-Tabs.Auto:CreateToggle("Auto Cap", function(value)
-    AutoCapToggle:SetValue(value)
-end)
-
 local AutoResetToggle = createOption("AutoReset", false)
-Tabs.Auto:CreateToggle("Auto Reset After Catch", function(value)
-    AutoResetToggle:SetValue(value)
-end)
-
 local AutoResetDelay = createOption("AutoResetDelay", 1)
-Tabs.Auto:CreateSlider("Reset Delay", 0, 5, function(value)
-    AutoResetDelay:SetValue(value)
-end)
-
--- SETTINGS TAB - Config System UI
-local currentConfigName = ""
-local configNames = ConfigSystem:GetConfigs()
-table.insert(configNames, 1, "Enter New Name")
-
-local ConfigNameDropdown = createOption("ConfigName", "Enter New Name")
-Tabs.Settings:CreateDropdown("Config Name", configNames, function(value)
-    ConfigNameDropdown:SetValue(value)
-    currentConfigName = value
-end)
-
-Tabs.Settings:CreateButton("Save Config", function()
-    if currentConfigName == "" or currentConfigName == "Enter New Name" then
-        currentConfigName = "Config_" .. os.date("%H%M%S")
-    end
-
-    local success = ConfigSystem:SaveConfig(currentConfigName)
-    if success then
-        print("Config saved: " .. currentConfigName)
-    else
-        print("Failed to save config")
-    end
-end)
-
-Tabs.Settings:CreateButton("Load Config", function()
-    if currentConfigName == "" or currentConfigName == "Enter New Name" then
-        print("Please select a config to load")
-        return
-    end
-
-    local success = ConfigSystem:LoadConfig(currentConfigName)
-    if success then
-        print("Config loaded: " .. currentConfigName)
-    else
-        print("Failed to load config")
-    end
-end)
-
-Tabs.Settings:CreateButton("Delete Config", function()
-    if currentConfigName == "" or currentConfigName == "Enter New Name" then
-        print("Please select a config to delete")
-        return
-    end
-
-    local success = ConfigSystem:DeleteConfig(currentConfigName)
-    if success then
-        print("Config deleted: " .. currentConfigName)
-        configNames = ConfigSystem:GetConfigs()
-        table.insert(configNames, 1, "Enter New Name")
-    else
-        print("Failed to delete config")
-    end
-end)
-
 local AutoSaveToggle = createOption("AutoSave", false)
-Tabs.Settings:CreateToggle("Auto Save", function(value)
-    AutoSaveToggle:SetValue(value)
-end)
 
--- PHYSICS EXTENDERS
+-- PHYSICS EXTENDERS (original)
 if firetouchinterest and not IS_SOLARA then
     local TackleExtenderToggle = createOption("TackleExtender", false)
-    Tabs.Physics:CreateToggle("Tackle Extender", function(value)
-        TackleExtenderToggle:SetValue(value)
-    end)
-
     local TackleExtenderRadius = createOption("TackleExtenderRadius", 5)
-    Tabs.Physics:CreateSlider("Radius", 0, 10, function(value)
-        TackleExtenderRadius:SetValue(value)
-    end)
 end
 
 if AC_BYPASS then
     local BlockExtenderToggle = createOption("BlockExtender", false)
-    Tabs.Physics:CreateToggle("Block Extender", function(value)
-        BlockExtenderToggle:SetValue(value)
-    end)
-
     local BlockExtenderRange = createOption("BlockExtenderRange", 10)
-    Tabs.Physics:CreateSlider("Range", 1, 20, function(value)
-        BlockExtenderRange:SetValue(value)
-    end)
-
     local BlockExtenderTransparency = createOption("BlockExtenderTransparency", 1)
-    Tabs.Physics:CreateSlider("Transparency", 0, 1, function(value)
-        BlockExtenderTransparency:SetValue(value)
-    end)
 end
 
--- UTILITY FUNCTIONS
+-- UTILITY FUNCTIONS (ALL ORIGINAL)
 local function getPing()
     return statsService.PerformanceStats.Ping:GetValue()
 end
@@ -839,7 +449,7 @@ function beamProjectile(g, v0, x0, t1)
     return curve0, -curve1, cf1, cf2;
 end
 
--- TRACKING VARIABLES
+-- TRACKING VARIABLES (ALL ORIGINAL)
 local boundaries = {}
 local fakeBalls = {}
 local pullVectoredBalls = {}
@@ -888,7 +498,1050 @@ if IS_SOLARA then
     end
 end
 
--- FIXED DIVE POWER HOOK
+-- MILLENNIUM UI SETUP
+local MillenniumUI = {}
+
+-- Configuration
+local Config = {
+    MainImageId = "rbxassetid://129937299302497",
+    Theme = {
+        Background = Color3.fromRGB(25, 25, 35),
+        SecondaryBackground = Color3.fromRGB(35, 35, 45),
+        AccentColor = Color3.fromRGB(130, 100, 255),
+        TextColor = Color3.fromRGB(255, 255, 255),
+        SecondaryTextColor = Color3.fromRGB(180, 180, 180),
+        BorderColor = Color3.fromRGB(60, 60, 70),
+        SuccessColor = Color3.fromRGB(50, 200, 50),
+        WarningColor = Color3.fromRGB(255, 200, 50),
+        ErrorColor = Color3.fromRGB(255, 80, 80)
+    }
+}
+
+-- Store globally for Part 2 access
+getgenv().MillenniumUI = MillenniumUI
+getgenv().Config = Config
+getgenv().Options = Options
+getgenv().ConfigSystem = ConfigSystem
+getgenv().KeybindSystem = KeybindSystem
+
+-- FF2 Script with Millennium UI Integration - PART 2 (CORRECTED)
+-- Millennium UI Implementation + Complete Original Script Logic
+
+-- Utility Functions for Millennium UI
+local function CreateTween(object, properties, duration, easingStyle, easingDirection)
+    local tweenInfo = TweenInfo.new(
+        duration or 0.3,
+        easingStyle or Enum.EasingStyle.Quad,
+        easingDirection or Enum.EasingDirection.Out
+    )
+    return tweenService:Create(object, tweenInfo, properties)
+end
+
+local function RoundCorners(object, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 8)
+    corner.Parent = object
+    return corner
+end
+
+local function AddStroke(object, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or Config.Theme.BorderColor
+    stroke.Thickness = thickness or 1
+    stroke.Parent = object
+    return stroke
+end
+
+-- Create Main GUI
+function MillenniumUI:CreateGUI()
+    -- Destroy existing GUI if it exists
+    local playerGui = player:WaitForChild("PlayerGui")
+    if playerGui:FindFirstChild("MillenniumUI") then
+        playerGui.MillenniumUI:Destroy()
+    end
+
+    -- Main ScreenGui
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "MillenniumUI"
+    ScreenGui.Parent = playerGui
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    -- Toggle Button
+    local ToggleButton = Instance.new("ImageButton")
+    ToggleButton.Name = "ToggleButton"
+    ToggleButton.Size = UDim2.new(0, 60, 0, 60)
+    ToggleButton.Position = UDim2.new(0.5, -30, 0.5, -30)
+    ToggleButton.BackgroundColor3 = Config.Theme.SecondaryBackground
+    ToggleButton.Image = Config.MainImageId
+    ToggleButton.ScaleType = Enum.ScaleType.Fit
+    ToggleButton.Parent = ScreenGui
+    ToggleButton.Active = true
+    ToggleButton.Draggable = true
+
+    RoundCorners(ToggleButton, 30)
+    AddStroke(ToggleButton, Config.Theme.AccentColor, 2)
+
+    -- Main Window
+    local MainWindow = Instance.new("Frame")
+    MainWindow.Name = "MainWindow"
+    MainWindow.Size = UDim2.new(0, 850, 0, 550)
+    MainWindow.Position = UDim2.new(0.5, -425, 0.5, -275)
+    MainWindow.BackgroundColor3 = Config.Theme.Background
+    MainWindow.Parent = ScreenGui
+    MainWindow.Visible = false
+    MainWindow.Active = true
+
+    RoundCorners(MainWindow, 12)
+    AddStroke(MainWindow, Config.Theme.BorderColor, 1)
+
+    -- Title Bar
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Name = "TitleBar"
+    TitleBar.Size = UDim2.new(1, 0, 0, 40)
+    TitleBar.Position = UDim2.new(0, 0, 0, 0)
+    TitleBar.BackgroundColor3 = Config.Theme.SecondaryBackground
+    TitleBar.Parent = MainWindow
+
+    RoundCorners(TitleBar, 12)
+
+    local TitleText = Instance.new("TextLabel")
+    TitleText.Name = "TitleText"
+    TitleText.Size = UDim2.new(1, -220, 1, 0)
+    TitleText.Position = UDim2.new(0, 15, 0, 0)
+    TitleText.BackgroundTransparency = 1
+    TitleText.Text = "Sense Hub - Millennium"
+    TitleText.TextColor3 = Config.Theme.TextColor
+    TitleText.TextSize = 18
+    TitleText.TextXAlignment = Enum.TextXAlignment.Left
+    TitleText.Font = Enum.Font.GothamBold
+    TitleText.Parent = TitleBar
+
+    -- Close Button
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.Position = UDim2.new(1, -40, 0, 5)
+    CloseButton.BackgroundColor3 = Config.Theme.ErrorColor
+    CloseButton.Text = "×"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = 20
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.Parent = TitleBar
+
+    RoundCorners(CloseButton, 6)
+
+    -- Search Bar
+    local SearchFrame = Instance.new("Frame")
+    SearchFrame.Name = "SearchFrame"
+    SearchFrame.Size = UDim2.new(0, 160, 0, 30)
+    SearchFrame.Position = UDim2.new(1, -180, 0, 5)
+    SearchFrame.BackgroundColor3 = Config.Theme.Background
+    SearchFrame.Parent = TitleBar
+
+    RoundCorners(SearchFrame, 6)
+
+    local SearchBox = Instance.new("TextBox")
+    SearchBox.Name = "SearchBox"
+    SearchBox.Size = UDim2.new(1, -10, 1, 0)
+    SearchBox.Position = UDim2.new(0, 5, 0, 0)
+    SearchBox.BackgroundTransparency = 1
+    SearchBox.Text = ""
+    SearchBox.PlaceholderText = "Search..."
+    SearchBox.TextColor3 = Config.Theme.TextColor
+    SearchBox.PlaceholderColor3 = Config.Theme.SecondaryTextColor
+    SearchBox.TextSize = 14
+    SearchBox.Font = Enum.Font.Gotham
+    SearchBox.Parent = SearchFrame
+
+    -- Content Area
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "ContentFrame"
+    ContentFrame.Size = UDim2.new(1, 0, 1, -40)
+    ContentFrame.Position = UDim2.new(0, 0, 0, 40)
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.Parent = MainWindow
+
+    -- Sidebar
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Name = "Sidebar"
+    Sidebar.Size = UDim2.new(0, 180, 1, 0)
+    Sidebar.Position = UDim2.new(0, 0, 0, 0)
+    Sidebar.BackgroundColor3 = Config.Theme.SecondaryBackground
+    Sidebar.Parent = ContentFrame
+
+    RoundCorners(Sidebar, 8)
+
+    -- Tab Container
+    local TabContainer = Instance.new("ScrollingFrame")
+    TabContainer.Name = "TabContainer"
+    TabContainer.Size = UDim2.new(1, -10, 1, -10)
+    TabContainer.Position = UDim2.new(0, 5, 0, 5)
+    TabContainer.BackgroundTransparency = 1
+    TabContainer.ScrollBarThickness = 4
+    TabContainer.ScrollBarImageColor3 = Config.Theme.AccentColor
+    TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+    TabContainer.Parent = Sidebar
+
+    -- Panel Area
+    local PanelArea = Instance.new("Frame")
+    PanelArea.Name = "PanelArea"
+    PanelArea.Size = UDim2.new(1, -185, 1, -5)
+    PanelArea.Position = UDim2.new(0, 185, 0, 5)
+    PanelArea.BackgroundColor3 = Config.Theme.Background
+    PanelArea.Parent = ContentFrame
+
+    RoundCorners(PanelArea, 8)
+
+    -- Store references
+    self.ScreenGui = ScreenGui
+    self.ToggleButton = ToggleButton
+    self.MainWindow = MainWindow
+    self.TabContainer = TabContainer
+    self.PanelArea = PanelArea
+    self.CurrentTab = nil
+    self.Tabs = {}
+    self.UIElements = {}
+
+    -- Toggle functionality
+    local isVisible = false
+    ToggleButton.MouseButton1Click:Connect(function()
+        isVisible = not isVisible
+        MainWindow.Visible = isVisible
+
+        if isVisible then
+            MainWindow.Size = UDim2.new(0, 0, 0, 0)
+            MainWindow.Position = UDim2.new(0.5, 0, 0.5, 0)
+            CreateTween(MainWindow, {
+                Size = UDim2.new(0, 850, 0, 550),
+                Position = UDim2.new(0.5, -425, 0.5, -275)
+            }, 0.4, Enum.EasingStyle.Back):Play()
+        end
+    end)
+
+    CloseButton.MouseButton1Click:Connect(function()
+        isVisible = false
+        CreateTween(MainWindow, {
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        }, 0.3):Play()
+
+        wait(0.3)
+        MainWindow.Visible = false
+    end)
+
+    -- Make window draggable
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+
+    TitleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainWindow.Position
+        end
+    end)
+
+    TitleBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    userInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            MainWindow.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    return self
+end
+
+-- Create Tab
+function MillenniumUI:CreateTab(name, icon)
+    local tabButton = Instance.new("TextButton")
+    tabButton.Name = name .. "Tab"
+    tabButton.Size = UDim2.new(1, -10, 0, 35)
+    tabButton.Position = UDim2.new(0, 5, 0, #self.Tabs * 40 + 5)
+    tabButton.BackgroundColor3 = Config.Theme.Background
+    tabButton.Text = ""
+    tabButton.Parent = self.TabContainer
+
+    RoundCorners(tabButton, 6)
+
+    local tabIcon = Instance.new("TextLabel")
+    tabIcon.Name = "Icon"
+    tabIcon.Size = UDim2.new(0, 20, 0, 20)
+    tabIcon.Position = UDim2.new(0, 10, 0.5, -10)
+    tabIcon.BackgroundTransparency = 1
+    tabIcon.Text = icon or "●"
+    tabIcon.TextColor3 = Config.Theme.SecondaryTextColor
+    tabIcon.TextSize = 16
+    tabIcon.Font = Enum.Font.Gotham
+    tabIcon.Parent = tabButton
+
+    local tabLabel = Instance.new("TextLabel")
+    tabLabel.Name = "Label"
+    tabLabel.Size = UDim2.new(1, -35, 1, 0)
+    tabLabel.Position = UDim2.new(0, 35, 0, 0)
+    tabLabel.BackgroundTransparency = 1
+    tabLabel.Text = name
+    tabLabel.TextColor3 = Config.Theme.SecondaryTextColor
+    tabLabel.TextSize = 14
+    tabLabel.TextXAlignment = Enum.TextXAlignment.Left
+    tabLabel.Font = Enum.Font.Gotham
+    tabLabel.Parent = tabButton
+
+    -- Tab Panel
+    local tabPanel = Instance.new("ScrollingFrame")
+    tabPanel.Name = name .. "Panel"
+    tabPanel.Size = UDim2.new(1, -10, 1, -10)
+    tabPanel.Position = UDim2.new(0, 5, 0, 5)
+    tabPanel.BackgroundTransparency = 1
+    tabPanel.ScrollBarThickness = 4
+    tabPanel.ScrollBarImageColor3 = Config.Theme.AccentColor
+    tabPanel.CanvasSize = UDim2.new(0, 0, 0, 0)
+    tabPanel.Visible = false
+    tabPanel.Parent = self.PanelArea
+
+    -- Tab functionality
+    tabButton.MouseButton1Click:Connect(function()
+        self:SelectTab(name)
+    end)
+
+    -- Store tab data
+    local tabData = {
+        name = name,
+        button = tabButton,
+        panel = tabPanel,
+        icon = tabIcon,
+        label = tabLabel,
+        elements = {},
+        elementCount = 0
+    }
+
+    table.insert(self.Tabs, tabData)
+
+    -- Select first tab by default
+    if #self.Tabs == 1 then
+        self:SelectTab(name)
+    end
+
+    -- Update canvas size
+    self.TabContainer.CanvasSize = UDim2.new(0, 0, 0, #self.Tabs * 40 + 10)
+
+    return tabData
+end
+
+-- Select Tab
+function MillenniumUI:SelectTab(tabName)
+    for _, tab in pairs(self.Tabs) do
+        if tab.name == tabName then
+            tab.button.BackgroundColor3 = Config.Theme.AccentColor
+            tab.icon.TextColor3 = Config.Theme.TextColor
+            tab.label.TextColor3 = Config.Theme.TextColor
+            tab.panel.Visible = true
+            self.CurrentTab = tab
+        else
+            tab.button.BackgroundColor3 = Config.Theme.Background
+            tab.icon.TextColor3 = Config.Theme.SecondaryTextColor
+            tab.label.TextColor3 = Config.Theme.SecondaryTextColor
+            tab.panel.Visible = false
+        end
+    end
+end
+
+-- Add Toggle to Tab
+function MillenniumUI:AddToggle(tab, text, optionName, callback)
+    local toggle = Instance.new("Frame")
+    toggle.Name = text .. "Toggle"
+    toggle.Size = UDim2.new(1, -10, 0, 40)
+    toggle.Position = UDim2.new(0, 5, 0, tab.elementCount * 45 + 5)
+    toggle.BackgroundColor3 = Config.Theme.SecondaryBackground
+    toggle.Parent = tab.panel
+
+    RoundCorners(toggle, 6)
+
+    local toggleLabel = Instance.new("TextLabel")
+    toggleLabel.Name = "Label"
+    toggleLabel.Size = UDim2.new(1, -60, 1, 0)
+    toggleLabel.Position = UDim2.new(0, 15, 0, 0)
+    toggleLabel.BackgroundTransparency = 1
+    toggleLabel.Text = text
+    toggleLabel.TextColor3 = Config.Theme.TextColor
+    toggleLabel.TextSize = 14
+    toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    toggleLabel.Font = Enum.Font.Gotham
+    toggleLabel.Parent = toggle
+
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Name = "Button"
+    toggleButton.Size = UDim2.new(0, 40, 0, 20)
+    toggleButton.Position = UDim2.new(1, -50, 0.5, -10)
+    toggleButton.BackgroundColor3 = (Options[optionName] and Options[optionName].Value) and Config.Theme.AccentColor or Config.Theme.BorderColor
+    toggleButton.Text = ""
+    toggleButton.Parent = toggle
+
+    RoundCorners(toggleButton, 10)
+
+    local toggleIndicator = Instance.new("Frame")
+    toggleIndicator.Name = "Indicator"
+    toggleIndicator.Size = UDim2.new(0, 16, 0, 16)
+    toggleIndicator.Position = (Options[optionName] and Options[optionName].Value) and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+    toggleIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    toggleIndicator.Parent = toggleButton
+
+    RoundCorners(toggleIndicator, 8)
+
+    toggleButton.MouseButton1Click:Connect(function()
+        if Options[optionName] then
+            local newValue = not Options[optionName].Value
+            Options[optionName]:SetValue(newValue)
+
+            CreateTween(toggleButton, {
+                BackgroundColor3 = newValue and Config.Theme.AccentColor or Config.Theme.BorderColor
+            }):Play()
+
+            CreateTween(toggleIndicator, {
+                Position = newValue and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            }):Play()
+
+            if callback then
+                callback(newValue)
+            end
+        end
+    end)
+
+    tab.elementCount = tab.elementCount + 1
+    tab.panel.CanvasSize = UDim2.new(0, 0, 0, tab.elementCount * 45 + 10)
+
+    -- Store element reference for config updates
+    self.UIElements[optionName] = {
+        type = "toggle",
+        button = toggleButton,
+        indicator = toggleIndicator,
+        update = function(value)
+            toggleButton.BackgroundColor3 = value and Config.Theme.AccentColor or Config.Theme.BorderColor
+            toggleIndicator.Position = value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        end
+    }
+
+    return toggle
+end
+
+-- Add Slider to Tab
+function MillenniumUI:AddSlider(tab, text, optionName, min, max, callback)
+    local slider = Instance.new("Frame")
+    slider.Name = text .. "Slider"
+    slider.Size = UDim2.new(1, -10, 0, 50)
+    slider.Position = UDim2.new(0, 5, 0, tab.elementCount * 55 + 5)
+    slider.BackgroundColor3 = Config.Theme.SecondaryBackground
+    slider.Parent = tab.panel
+
+    RoundCorners(slider, 6)
+
+    local sliderLabel = Instance.new("TextLabel")
+    sliderLabel.Name = "Label"
+    sliderLabel.Size = UDim2.new(0.7, 0, 0, 25)
+    sliderLabel.Position = UDim2.new(0, 15, 0, 5)
+    sliderLabel.BackgroundTransparency = 1
+    sliderLabel.Text = text
+    sliderLabel.TextColor3 = Config.Theme.TextColor
+    sliderLabel.TextSize = 14
+    sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    sliderLabel.Font = Enum.Font.Gotham
+    sliderLabel.Parent = slider
+
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Name = "ValueLabel"
+    valueLabel.Size = UDim2.new(0.3, -15, 0, 25)
+    valueLabel.Position = UDim2.new(0.7, 0, 0, 5)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.Text = tostring(Options[optionName] and Options[optionName].Value or min)
+    valueLabel.TextColor3 = Config.Theme.AccentColor
+    valueLabel.TextSize = 14
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    valueLabel.Font = Enum.Font.GothamBold
+    valueLabel.Parent = slider
+
+    local sliderTrack = Instance.new("Frame")
+    sliderTrack.Name = "Track"
+    sliderTrack.Size = UDim2.new(1, -30, 0, 4)
+    sliderTrack.Position = UDim2.new(0, 15, 1, -15)
+    sliderTrack.BackgroundColor3 = Config.Theme.BorderColor
+    sliderTrack.Parent = slider
+
+    RoundCorners(sliderTrack, 2)
+
+    local sliderFill = Instance.new("Frame")
+    sliderFill.Name = "Fill"
+    sliderFill.Size = UDim2.new(0, 0, 1, 0)
+    sliderFill.Position = UDim2.new(0, 0, 0, 0)
+    sliderFill.BackgroundColor3 = Config.Theme.AccentColor
+    sliderFill.Parent = sliderTrack
+
+    RoundCorners(sliderFill, 2)
+
+    local sliderHandle = Instance.new("Frame")
+    sliderHandle.Name = "Handle"
+    sliderHandle.Size = UDim2.new(0, 12, 0, 12)
+    sliderHandle.Position = UDim2.new(0, -6, 0.5, -6)
+    sliderHandle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    sliderHandle.Parent = sliderTrack
+
+    RoundCorners(sliderHandle, 6)
+
+    local dragging = false
+
+    -- Update slider visuals
+    local function updateSlider()
+        local value = Options[optionName] and Options[optionName].Value or min
+        local percentage = (value - min) / (max - min)
+        sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+        sliderHandle.Position = UDim2.new(percentage, -6, 0.5, -6)
+        valueLabel.Text = tostring(math.floor(value * 100) / 100)
+    end
+
+    updateSlider()
+
+    sliderTrack.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+        end
+    end)
+
+    sliderTrack.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    userInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = input.Position
+            local trackPosition = sliderTrack.AbsolutePosition
+            local trackSize = sliderTrack.AbsoluteSize
+
+            local percentage = math.clamp((mouse.X - trackPosition.X) / trackSize.X, 0, 1)
+            local value = min + (max - min) * percentage
+
+            if Options[optionName] then
+                Options[optionName]:SetValue(value)
+                updateSlider()
+
+                if callback then
+                    callback(value)
+                end
+            end
+        end
+    end)
+
+    tab.elementCount = tab.elementCount + 1
+    tab.panel.CanvasSize = UDim2.new(0, 0, 0, tab.elementCount * 55 + 10)
+
+    -- Store element reference for config updates
+    self.UIElements[optionName] = {
+        type = "slider",
+        update = updateSlider
+    }
+
+    return slider
+end
+
+-- Add Dropdown to Tab
+function MillenniumUI:AddDropdown(tab, text, optionName, options, callback)
+    local dropdown = Instance.new("Frame")
+    dropdown.Name = text .. "Dropdown"
+    dropdown.Size = UDim2.new(1, -10, 0, 40)
+    dropdown.Position = UDim2.new(0, 5, 0, tab.elementCount * 45 + 5)
+    dropdown.BackgroundColor3 = Config.Theme.SecondaryBackground
+    dropdown.Parent = tab.panel
+
+    RoundCorners(dropdown, 6)
+
+    local dropdownLabel = Instance.new("TextLabel")
+    dropdownLabel.Name = "Label"
+    dropdownLabel.Size = UDim2.new(0.5, 0, 1, 0)
+    dropdownLabel.Position = UDim2.new(0, 15, 0, 0)
+    dropdownLabel.BackgroundTransparency = 1
+    dropdownLabel.Text = text
+    dropdownLabel.TextColor3 = Config.Theme.TextColor
+    dropdownLabel.TextSize = 14
+    dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+    dropdownLabel.Font = Enum.Font.Gotham
+    dropdownLabel.Parent = dropdown
+
+    local dropdownButton = Instance.new("TextButton")
+    dropdownButton.Name = "Button"
+    dropdownButton.Size = UDim2.new(0.5, -20, 0, 30)
+    dropdownButton.Position = UDim2.new(0.5, 5, 0, 5)
+    dropdownButton.BackgroundColor3 = Config.Theme.Background
+    dropdownButton.Text = (Options[optionName] and Options[optionName].Value) or options[1] or "Select..."
+    dropdownButton.TextColor3 = Config.Theme.TextColor
+    dropdownButton.TextSize = 12
+    dropdownButton.Font = Enum.Font.Gotham
+    dropdownButton.Parent = dropdown
+
+    RoundCorners(dropdownButton, 4)
+
+    local dropdownArrow = Instance.new("TextLabel")
+    dropdownArrow.Name = "Arrow"
+    dropdownArrow.Size = UDim2.new(0, 20, 1, 0)
+    dropdownArrow.Position = UDim2.new(1, -20, 0, 0)
+    dropdownArrow.BackgroundTransparency = 1
+    dropdownArrow.Text = "▼"
+    dropdownArrow.TextColor3 = Config.Theme.SecondaryTextColor
+    dropdownArrow.TextSize = 10
+    dropdownArrow.Font = Enum.Font.Gotham
+    dropdownArrow.Parent = dropdownButton
+
+    local optionsFrame = Instance.new("Frame")
+    optionsFrame.Name = "OptionsFrame"
+    optionsFrame.Size = UDim2.new(0.5, -20, 0, #options * 25)
+    optionsFrame.Position = UDim2.new(0.5, 5, 1, 5)
+    optionsFrame.BackgroundColor3 = Config.Theme.Background
+    optionsFrame.Visible = false
+    optionsFrame.ZIndex = 10
+    optionsFrame.Parent = dropdown
+
+    RoundCorners(optionsFrame, 4)
+    AddStroke(optionsFrame, Config.Theme.BorderColor, 1)
+
+    local isOpen = false
+
+    for i, option in ipairs(options) do
+        local optionButton = Instance.new("TextButton")
+        optionButton.Name = option .. "Option"
+        optionButton.Size = UDim2.new(1, 0, 0, 25)
+        optionButton.Position = UDim2.new(0, 0, 0, (i-1) * 25)
+        optionButton.BackgroundTransparency = 1
+        optionButton.Text = option
+        optionButton.TextColor3 = Config.Theme.TextColor
+        optionButton.TextSize = 12
+        optionButton.Font = Enum.Font.Gotham
+        optionButton.Parent = optionsFrame
+
+        optionButton.MouseEnter:Connect(function()
+            optionButton.BackgroundColor3 = Config.Theme.AccentColor
+            optionButton.BackgroundTransparency = 0
+        end)
+
+        optionButton.MouseLeave:Connect(function()
+            optionButton.BackgroundTransparency = 1
+        end)
+
+        optionButton.MouseButton1Click:Connect(function()
+            if Options[optionName] then
+                Options[optionName]:SetValue(option)
+                dropdownButton.Text = option
+            end
+            isOpen = false
+            optionsFrame.Visible = false
+            dropdownArrow.Text = "▼"
+
+            if callback then
+                callback(option)
+            end
+        end)
+    end
+
+    dropdownButton.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        optionsFrame.Visible = isOpen
+        dropdownArrow.Text = isOpen and "▲" or "▼"
+    end)
+
+    tab.elementCount = tab.elementCount + 1
+    tab.panel.CanvasSize = UDim2.new(0, 0, 0, tab.elementCount * 45 + 10)
+
+    -- Store element reference for config updates
+    self.UIElements[optionName] = {
+        type = "dropdown",
+        button = dropdownButton,
+        update = function(value)
+            dropdownButton.Text = value
+        end
+    }
+
+    return dropdown
+end
+
+-- Add Button to Tab
+function MillenniumUI:AddButton(tab, text, callback)
+    local button = Instance.new("TextButton")
+    button.Name = text .. "Button"
+    button.Size = UDim2.new(1, -10, 0, 35)
+    button.Position = UDim2.new(0, 5, 0, tab.elementCount * 40 + 5)
+    button.BackgroundColor3 = Config.Theme.SecondaryBackground
+    button.Text = text
+    button.TextColor3 = Config.Theme.TextColor
+    button.TextSize = 14
+    button.Font = Enum.Font.Gotham
+    button.Parent = tab.panel
+
+    RoundCorners(button, 6)
+    AddStroke(button, Config.Theme.BorderColor, 1)
+
+    button.MouseEnter:Connect(function()
+        CreateTween(button, {BackgroundColor3 = Config.Theme.AccentColor}):Play()
+    end)
+
+    button.MouseLeave:Connect(function()
+        CreateTween(button, {BackgroundColor3 = Config.Theme.SecondaryBackground}):Play()
+    end)
+
+    button.MouseButton1Click:Connect(function()
+        if callback then
+            callback()
+        end
+    end)
+
+    tab.elementCount = tab.elementCount + 1
+    tab.panel.CanvasSize = UDim2.new(0, 0, 0, tab.elementCount * 40 + 10)
+
+    return button
+end
+
+-- Update Option (for config loading)
+function MillenniumUI:UpdateOption(optionName, value)
+    if self.UIElements[optionName] and self.UIElements[optionName].update then
+        self.UIElements[optionName].update(value)
+    end
+end
+
+-- Initialize Millennium UI
+local UI = MillenniumUI:CreateGUI()
+
+-- Create tabs
+local catchingTab = UI:CreateTab("Catching", "🎯")
+local physicsTab = UI:CreateTab("Physics", "⚡")
+local playerTab = UI:CreateTab("Player", "👤")
+local autoTab = UI:CreateTab("Auto", "🤖")
+local settingsTab = UI:CreateTab("Settings", "⚙️")
+
+-- CATCHING TAB
+UI:AddToggle(catchingTab, "Magnets", "Magnets", function(value)
+    print("Magnets:", value)
+end)
+
+UI:AddDropdown(catchingTab, "Type", "MagnetsType", {"Blatant", "Legit", "League"}, function(value)
+    print("Magnets Type:", value)
+end)
+
+UI:AddSlider(catchingTab, "Radius", "MagnetsCustomRadius", 0, 70, function(value)
+    print("Magnets Radius:", value)
+end)
+
+UI:AddToggle(catchingTab, "Visualise Hitbox", "ShowMagHitbox", function(value)
+    print("Show Mag Hitbox:", value)
+end)
+
+UI:AddToggle(catchingTab, "Pull Vector", "PullVector", function(value)
+    print("Pull Vector:", value)
+end)
+
+UI:AddSlider(catchingTab, "Distance", "PullVectorDistance", 0, 100, function(value)
+    print("Pull Vector Distance:", value)
+end)
+
+UI:AddDropdown(catchingTab, "Pull Type", "PullVectorType", {"Glide", "Teleport"}, function(value)
+    print("Pull Vector Type:", value)
+end)
+
+UI:AddSlider(catchingTab, "Power", "PullVectorPower", 1, 5, function(value)
+    print("Pull Vector Power:", value)
+end)
+
+UI:AddToggle(catchingTab, "Freeze Tech", "FreezeTech", function(value)
+    print("Freeze Tech:", value)
+end)
+
+UI:AddSlider(catchingTab, "Freeze Duration", "FreezeTechDuration", 0, 3, function(value)
+    print("Freeze Tech Duration:", value)
+end)
+
+-- PHYSICS TAB
+UI:AddToggle(physicsTab, "Click Tackle Aimbot", "ClickTackleAimbot", function(value)
+    print("Click Tackle Aimbot:", value)
+end)
+
+UI:AddSlider(physicsTab, "Distance", "ClickTackleAimbotDistance", 0, 15, function(value)
+    print("Click Tackle Distance:", value)
+end)
+
+UI:AddToggle(physicsTab, "Anti Jam", "AntiJam", function(value)
+    print("Anti Jam:", value)
+end)
+
+UI:AddToggle(physicsTab, "Anti Block", "AntiBlock", function(value)
+    print("Anti Block:", value)
+end)
+
+UI:AddToggle(physicsTab, "Visualize Ball Path", "VisualizeBallPath", function(value)
+    print("Visualize Ball Path:", value)
+end)
+
+UI:AddToggle(physicsTab, "No Jump Cooldown", "NoJumpCooldown", function(value)
+    print("No Jump Cooldown:", value)
+end)
+
+UI:AddToggle(physicsTab, "No Freeze", "NoFreeze", function(value)
+    print("No Freeze:", value)
+end)
+
+UI:AddToggle(physicsTab, "Optimal Jump", "OptimalJump", function(value)
+    print("Optimal Jump:", value)
+end)
+
+UI:AddDropdown(physicsTab, "Type", "OptimalJumpType", {"Jump", "Dive"}, function(value)
+    print("Optimal Jump Type:", value)
+end)
+
+UI:AddToggle(physicsTab, "No Ball Trail", "NoBallTrail", function(value)
+    print("No Ball Trail:", value)
+end)
+
+UI:AddToggle(physicsTab, "Big Head", "BigHead", function(value)
+    print("Big Head:", value)
+end)
+
+UI:AddSlider(physicsTab, "Size", "BigHeadSize", 1, 5, function(value)
+    print("Big Head Size:", value)
+end)
+
+UI:AddToggle(physicsTab, "Anti Out Of Bounds", "AntiOOB", function(value)
+    print("Anti OOB:", value)
+end)
+
+-- PHYSICS EXTENDERS (conditional)
+if firetouchinterest and not IS_SOLARA then
+    UI:AddToggle(physicsTab, "Tackle Extender", "TackleExtender", function(value)
+        print("Tackle Extender:", value)
+    end)
+
+    UI:AddSlider(physicsTab, "Tackle Radius", "TackleExtenderRadius", 0, 10, function(value)
+        print("Tackle Extender Radius:", value)
+    end)
+end
+
+if AC_BYPASS then
+    UI:AddToggle(physicsTab, "Block Extender", "BlockExtender", function(value)
+        print("Block Extender:", value)
+    end)
+
+    UI:AddSlider(physicsTab, "Block Range", "BlockExtenderRange", 1, 20, function(value)
+        print("Block Extender Range:", value)
+    end)
+
+    UI:AddSlider(physicsTab, "Block Transparency", "BlockExtenderTransparency", 0, 1, function(value)
+        print("Block Extender Transparency:", value)
+    end)
+end
+
+-- PLAYER TAB
+UI:AddToggle(playerTab, "Quick TP", "QuickTP", function(value)
+    print("Quick TP:", value)
+end)
+
+UI:AddSlider(playerTab, "Speed", "QuickTPSpeed", 1, 5, function(value)
+    print("Quick TP Speed:", value)
+end)
+
+-- Create keybind for Quick TP (keeping original functionality)
+local quickTPCooldown = os.clock()
+local QuickTPKeybind = KeybindSystem:CreateKeybind("QuickTP", Enum.KeyCode.F, function()
+    if not Options.QuickTP or not Options.QuickTP.Value then return end
+
+    local character = player.Character
+    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character and character:FindFirstChild("Humanoid")
+
+    if not character or not humanoidRootPart or not humanoid then return end
+    if (os.clock() - quickTPCooldown) < 0.1 then return end
+
+    local speed = 2 + ((Options.QuickTPSpeed and Options.QuickTPSpeed.Value or 3) / 4)
+
+    humanoidRootPart.CFrame += humanoid.MoveDirection * speed
+    quickTPCooldown = os.clock()
+end)
+
+UI:AddToggle(playerTab, "Dive Power", "DivePower", function(value)
+    print("Dive Power:", value)
+end)
+
+UI:AddSlider(playerTab, "Dive Distance", "DivePowerDistance", 0, 10, function(value)
+    print("Dive Power Distance:", value)
+end)
+
+UI:AddToggle(playerTab, "Speed", "Speed", function(value)
+    if value then
+        local character = player.Character
+        local humanoid = character and character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = Options.SpeedValue.Value
+        end
+    end
+    print("Speed:", value)
+end)
+
+UI:AddSlider(playerTab, "Speed Value", "SpeedValue", 20, 23, function(value)
+    if Options.Speed and Options.Speed.Value then
+        local character = player.Character
+        local humanoid = character and character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = value
+        end
+    end
+    print("Speed Value:", value)
+end)
+
+UI:AddToggle(playerTab, "Jump Power", "JumpPower", function(value)
+    print("Jump Power:", value)
+end)
+
+UI:AddSlider(playerTab, "Power", "JumpPowerValue", 50, 70, function(value)
+    if Options.JumpPower and Options.JumpPower.Value then
+        local character = player.Character
+        local humanoid = character and character:FindFirstChild("Humanoid")
+        if humanoid and AC_BYPASS then
+            humanoid.JumpPower = value
+        end
+    end
+    print("Jump Power Value:", value)
+end)
+
+UI:AddToggle(playerTab, "Angle Enhancer", "AngleAssist", function(value)
+    print("Angle Assist:", value)
+end)
+
+UI:AddSlider(playerTab, "JP", "AngleAssistJP", 50, 70, function(value)
+    if Options.AngleAssist and Options.AngleAssist.Value then
+        local character = player.Character
+        local humanoid = character and character:FindFirstChild("Humanoid")
+        if humanoid and AC_BYPASS then
+            humanoid.JumpPower = value
+        end
+    end
+    print("Angle Assist JP:", value)
+end)
+
+-- AUTO TAB
+UI:AddToggle(autoTab, "Auto Cap", "AutoCap", function(value)
+    print("Auto Cap:", value)
+end)
+
+UI:AddToggle(autoTab, "Auto Reset After Catch", "AutoReset", function(value)
+    print("Auto Reset:", value)
+end)
+
+UI:AddSlider(autoTab, "Reset Delay", "AutoResetDelay", 0, 5, function(value)
+    print("Auto Reset Delay:", value)
+end)
+
+-- SETTINGS TAB - Enhanced Config System
+local currentConfigName = ""
+
+-- Config dropdown with existing configs
+local function updateConfigDropdown()
+    local configs = ConfigSystem:GetConfigs()
+    table.insert(configs, 1, "Create New Config")
+    return configs
+end
+
+local configDropdown = UI:AddDropdown(settingsTab, "Config Name", "ConfigName", updateConfigDropdown(), function(value)
+    currentConfigName = value
+    print("Selected config:", value)
+end)
+
+-- Config buttons
+UI:AddButton(settingsTab, "Save Config", function()
+    if currentConfigName == "" or currentConfigName == "Create New Config" then
+        currentConfigName = "Config_" .. os.date("%H%M%S")
+    end
+
+    local success = ConfigSystem:SaveConfig(currentConfigName)
+    if success then
+        starterGui:SetCore("SendNotification", {
+            Title = "Sense Hub";
+            Text = "Config saved: " .. currentConfigName;
+            Duration = 3;
+        })
+    else
+        starterGui:SetCore("SendNotification", {
+            Title = "Sense Hub";
+            Text = "Failed to save config";
+            Duration = 3;
+        })
+    end
+end)
+
+UI:AddButton(settingsTab, "Load Config", function()
+    if currentConfigName == "" or currentConfigName == "Create New Config" then
+        starterGui:SetCore("SendNotification", {
+            Title = "Sense Hub";
+            Text = "Please select a config to load";
+            Duration = 3;
+        })
+        return
+    end
+
+    local success = ConfigSystem:LoadConfig(currentConfigName)
+    if success then
+        -- Update all UI elements
+        for optionName, element in pairs(UI.UIElements) do
+            if Options[optionName] and element.update then
+                element.update(Options[optionName].Value)
+            end
+        end
+
+        starterGui:SetCore("SendNotification", {
+            Title = "Sense Hub";
+            Text = "Config loaded: " .. currentConfigName;
+            Duration = 3;
+        })
+    else
+        starterGui:SetCore("SendNotification", {
+            Title = "Sense Hub";
+            Text = "Failed to load config";
+            Duration = 3;
+        })
+    end
+end)
+
+UI:AddButton(settingsTab, "Delete Config", function()
+    if currentConfigName == "" or currentConfigName == "Create New Config" then
+        starterGui:SetCore("SendNotification", {
+            Title = "Sense Hub";
+            Text = "Please select a config to delete";
+            Duration = 3;
+        })
+        return
+    end
+
+    local success = ConfigSystem:DeleteConfig(currentConfigName)
+    if success then
+        starterGui:SetCore("SendNotification", {
+            Title = "Sense Hub";
+            Text = "Config deleted: " .. currentConfigName;
+            Duration = 3;
+        })
+        currentConfigName = ""
+    else
+        starterGui:SetCore("SendNotification", {
+            Title = "Sense Hub";
+            Text = "Failed to delete config";
+            Duration = 3;
+        })
+    end
+end)
+
+UI:AddToggle(settingsTab, "Auto Save", "AutoSave", function(value)
+    print("Auto Save:", value)
+end)
+
+-- ALL ORIGINAL SCRIPT LOGIC CONTINUES HERE (FIXED DIVE POWER HOOK)
 local divePowerOldNamecall
 divePowerOldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method, args = getnamecallmethod(), {...}
@@ -896,15 +1549,11 @@ divePowerOldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
         local character = player.Character
         local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
         if humanoidRootPart then
-            -- Fixed dive power to prevent getting stuck in ground
             local humanoid = character:FindFirstChild("Humanoid")
             if humanoid then
                 local diveForce = Options.DivePowerDistance and Options.DivePowerDistance.Value or 3
-                -- Apply horizontal force instead of velocity to prevent ground clipping
                 local lookDirection = humanoidRootPart.CFrame.LookVector
                 local horizontalForce = Vector3.new(lookDirection.X, 0, lookDirection.Z).Unit * diveForce * 10
-                
-                -- Apply impulse instead of direct velocity change
                 humanoidRootPart:ApplyImpulse(horizontalForce * humanoidRootPart.AssemblyMass)
             end
         end
@@ -912,7 +1561,7 @@ divePowerOldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     return divePowerOldNamecall(self, ...)
 end)
 
--- MAIN LOOPS AND HANDLERS
+-- ALL ORIGINAL MAIN LOOPS AND HANDLERS
 
 -- Clean up tables periodically
 task.spawn(function()
@@ -1050,4 +1699,4 @@ for _, option in pairs(Options) do
     end
 end
 
-print("Sense Hub loaded successfully!")
+print("Enjoy Sense Hub")
