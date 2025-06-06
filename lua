@@ -190,7 +190,7 @@ local Tabs = {
 
 local Options = Fluent.Options
 
--- QBAimbot Feature (Transferred from Bleachhack.lua)
+-- QBAimbot Feature 
 -- Main Toggle
 local QBAimbotToggle = Tabs.Throwing:AddToggle("QBAimbot", {
     Title = "QB Aimbot",
@@ -311,7 +311,7 @@ local QBAimbotMagKeybind = Tabs.Throwing:AddKeybind("QBAimbotMagKeybind", {
     Description = "Key for Mag throw"
 })
 
--- QBAimbot Core Variables and Functions (From Bleachhack.lua)
+-- QBAimbot Core Variables and Functions 
 local target = nil
 local power = 65
 local direction = Vector3.new(0, 1, 0)
@@ -439,7 +439,7 @@ local qbKeys = {
     end,
 }
 
--- Route and offset data (From Bleachhack.lua)
+-- Route and offset data 
 local sidewayRoutes = {"in/out", "flat"}
 local inAirAdditiveRoutes = {"stationary", "curl/comeback"}
 
