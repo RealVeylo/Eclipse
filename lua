@@ -190,6 +190,67 @@ local Tabs = {
 
 local Options = Fluent.Options
 
+-- Create Mobile Control Button
+local mobileControlButton = nil
+pcall(function()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MobileControlButton"
+    screenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    local button = Instance.new("ImageButton")
+    button.Name = "ControlButton"
+    button.Size = UDim2.new(0, 50, 0, 50)
+    button.Position = UDim2.new(0, 10, 0, 10)
+    button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    button.BackgroundTransparency = 0.2
+    button.BorderSizePixel = 2
+    button.BorderColor3 = Color3.fromRGB(0, 255, 255)
+    button.Image = "rbxassetid://129937299302497"
+    button.ImageTransparency = 0.1
+    button.ZIndex = 1000
+    button.Parent = screenGui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = button
+
+    -- Make draggable
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = button.Position
+        end
+    end)
+
+    button.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    button.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    -- Toggle window functionality
+    button.MouseButton1Click:Connect(function()
+        if not dragging then
+            Window:Minimize()
+        end
+    end)
+
+    mobileControlButton = screenGui
+end)
+
 -- QBAimbot Feature
 -- Main Toggle
 local QBAimbotToggle = Tabs.Throwing:AddToggle("QBAimbot", {
@@ -725,6 +786,21 @@ local ShowMagHitbox = Tabs.Catching:AddToggle("ShowMagHitbox", {
     Description = "Displays the mag hitbox"
 })
 
+local RainbowMagnetsToggle = Tabs.Catching:AddToggle("RainbowMagnets", {
+    Title = "Rainbow Magnets",
+    Default = false,
+    Description = "Makes hitbox rainbow"
+})
+
+local RainbowMagnetsSpeed = Tabs.Catching:AddSlider("RainbowMagnetsSpeed", {
+    Title = "Rainbow Speed",
+    Description = "Rainbow hitbox speed",
+    Default = 3,
+    Min = 1,
+    Max = 5,
+    Rounding = 1
+})
+
 local PullVectorToggle = Tabs.Catching:AddToggle("PullVector", {
     Title = "Pull Vector",
     Default = false,
@@ -926,6 +1002,15 @@ player.CharacterAdded:Connect(function()
         makeHelmetShiny(true)
     end
 end)
+
+-- Rainbow color function
+local function getRainbowColor(speed)
+    local time = os.clock() * speed
+    local r = math.sin(time) * 127 + 128
+    local g = math.sin(time + 2) * 127 + 128
+    local b = math.sin(time + 4) * 127 + 128
+    return Color3.fromRGB(r, g, b)
+end
 
 -- Functions needed for QBAimbot and other features
 function beamProjectile(g, v0, x0, t1)
