@@ -184,74 +184,13 @@ local Tabs = {
     Auto = Window:AddTab({ Title = "Auto", Icon = "bot", ScrollingEnabled = true }),
     Throwing = Window:AddTab({ Title = "Throwing", Icon = "send", ScrollingEnabled = true }),
     Player = Window:AddTab({ Title = "Player", Icon = "user", ScrollingEnabled = true }),
-    Cosmetics = Window:AddTab({ Title = "Cosmetics", Icon = "palette", ScrollingEnabled = true }),
+    Trolling = Window:AddTab({ Title = "Trolling", Icon = "zap", ScrollingEnabled = true }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings", ScrollingEnabled = true })
 }
 
 local Options = Fluent.Options
 
--- Create Mobile Control Button
-local mobileControlButton = nil
-pcall(function()
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "MobileControlButton"
-    screenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
-    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-    local button = Instance.new("ImageButton")
-    button.Name = "ControlButton"
-    button.Size = UDim2.new(0, 50, 0, 50)
-    button.Position = UDim2.new(0, 10, 0, 10)
-    button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    button.BackgroundTransparency = 0.2
-    button.BorderSizePixel = 2
-    button.BorderColor3 = Color3.fromRGB(0, 255, 255)
-    button.Image = "rbxassetid://129937299302497"
-    button.ImageTransparency = 0.1
-    button.ZIndex = 1000
-    button.Parent = screenGui
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = button
-
-    -- Make draggable
-    local dragging = false
-    local dragStart = nil
-    local startPos = nil
-
-    button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = button.Position
-        end
-    end)
-
-    button.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-
-    button.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-
-    -- Toggle window functionality
-    button.MouseButton1Click:Connect(function()
-        if not dragging then
-            Window:Minimize()
-        end
-    end)
-
-    mobileControlButton = screenGui
-end)
-
--- QBAimbot Feature
+-- QBAimbot Feature 
 -- Main Toggle
 local QBAimbotToggle = Tabs.Throwing:AddToggle("QBAimbot", {
     Title = "QB Aimbot",
@@ -292,8 +231,8 @@ local QBAimbot95PowerOnlyToggle = Tabs.Throwing:AddToggle("QBAimbot95PowerOnly",
 
 local QBAimbotAntiOOBToggle = Tabs.Throwing:AddToggle("QBAimbotAntiOOB", {
     Title = "Anti Out of Bounds",
-    Default = true,
-    Description = "Prevents throwing out of bounds (auto-configured)"
+    Default = false,
+    Description = "Prevents throwing out of bounds"
 })
 
 local QBAimbotExperimentalToggle = Tabs.Throwing:AddToggle("QBAimbotExperimental", {
@@ -308,11 +247,32 @@ local QBAimbotAdjustPowerGUIToggle = Tabs.Throwing:AddToggle("QBAimbotAdjustPowe
     Description = "Automatically adjusts in-game power GUI"
 })
 
--- Mobile UI Toggle
-local QBAimbotMobileUIToggle = Tabs.Throwing:AddToggle("QBAimbotMobileUI", {
-    Title = "Change Player",
-    Default = false,
-    Description = "Shows draggable player selector for mobile"
+-- Sliders
+local QBAimbotAntiOOBThreshold = Tabs.Throwing:AddSlider("QBAimbotAntiOOBThreshold", {
+    Title = "Anti OOB Threshold",
+    Description = "Threshold for out of bounds prevention",
+    Default = 0,
+    Min = -10,
+    Max = 10,
+    Rounding = 1
+})
+
+local QBAimbotXOffset = Tabs.Throwing:AddSlider("QBAimbotXOffset", {
+    Title = "X Offset",
+    Description = "Horizontal aim offset",
+    Default = 0,
+    Min = -5,
+    Max = 5,
+    Rounding = 1
+})
+
+local QBAimbotYOffset = Tabs.Throwing:AddSlider("QBAimbotYOffset", {
+    Title = "Y Offset",
+    Description = "Vertical aim offset",
+    Default = 0,
+    Min = -5,
+    Max = 5,
+    Rounding = 1
 })
 
 -- Keybinds for throw types
@@ -351,7 +311,7 @@ local QBAimbotMagKeybind = Tabs.Throwing:AddKeybind("QBAimbotMagKeybind", {
     Description = "Key for Mag throw"
 })
 
--- QBAimbot Core Variables and Functions
+-- QBAimbot Core Variables and Functions 
 local target = nil
 local power = 65
 local direction = Vector3.new(0, 1, 0)
@@ -362,127 +322,63 @@ local within = table.find
 local throwType = "Dive"
 local nonVisualThrowType = nil
 
--- Mobile Change Player UI
-local changePlayerUI = nil
-local qbInfoUIs = {}
-
+-- Custom QBAimbot Cards UI with Light Blue Theme
+local qbCards = nil
 pcall(function()
-    -- Create Change Player UI
+    -- Create custom cards UI instead of using asset
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "ChangePlayerUI"
+    screenGui.Name = "QBAimbotCards"
     screenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
     screenGui.Enabled = false
 
     local container = Instance.new("Frame")
     container.Name = "Container"
-    container.Size = UDim2.new(0, 150, 0, 40)
-    container.Position = UDim2.new(0.5, -75, 0.4, 0)
-    container.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    container.BackgroundTransparency = 0.1
+    container.Size = UDim2.new(0, 250, 0, 200)
+    container.Position = UDim2.new(0, 10, 0, 10)
+    container.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+    container.BackgroundTransparency = 0.8
     container.BorderSizePixel = 2
     container.BorderColor3 = Color3.fromRGB(0, 255, 255)
     container.Parent = screenGui
 
+    -- Add corner radius
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = container
 
-    local button = Instance.new("TextButton")
-    button.Name = "ChangeButton"
-    button.Size = UDim2.new(1, 0, 1, 0)
-    button.Position = UDim2.new(0, 0, 0, 0)
-    button.BackgroundTransparency = 1
-    button.Text = "Change Player"
-    button.TextColor3 = Color3.fromRGB(0, 255, 255)
-    button.TextScaled = true
-    button.Font = Enum.Font.GothamBold
-    button.Parent = container
-
-    -- Make draggable
-    local dragging = false
-    local dragStart = nil
-    local startPos = nil
-
-    button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = container.Position
-        end
-    end)
-
-    button.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            container.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-
-    button.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-
-    -- Click functionality to change target
-    button.MouseButton1Click:Connect(function()
-        target = findTarget()
-    end)
-
-    changePlayerUI = screenGui
-end)
-
--- Create 3 separate QB Info UIs
-pcall(function()
+    -- Create info labels
     local infoData = {
-        {name = "Player", items = {"Player: None", "Route: None"}},
-        {name = "Power", items = {"Power: 65", "Angle: 45"}},
-        {name = "Throw", items = {"Mode: Dive", "Distance: 0", "Interceptable: false"}}
+        {name = "Player", text = "Player: None"},
+        {name = "Angle", text = "Angle: 45"},
+        {name = "Power", text = "Power: 65"},
+        {name = "Mode", text = "Mode: Dive"},
+        {name = "Route", text = "Route: None"},
+        {name = "Distance", text = "Distance: 0"},
+        {name = "Interceptable", text = "Interceptable: false"}
     }
 
     for i, info in ipairs(infoData) do
-        local screenGui = Instance.new("ScreenGui")
-        screenGui.Name = "QBInfoUI" .. i
-        screenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
-        screenGui.Enabled = false
+        local frame = Instance.new("Frame")
+        frame.Name = info.name
+        frame.Size = UDim2.new(1, -10, 0, 25)
+        frame.Position = UDim2.new(0, 5, 0, 5 + (i-1) * 27)
+        frame.BackgroundTransparency = 1
+        frame.Parent = container
 
-        local container = Instance.new("Frame")
-        container.Name = "Container"
-        container.Size = UDim2.new(0, 180, 0, 60)
-        container.Position = UDim2.new(0, 10 + (i-1) * 190, 0, 10)
-        container.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
-        container.BackgroundTransparency = 0.8
-        container.BorderSizePixel = 2
-        container.BorderColor3 = Color3.fromRGB(0, 255, 255)
-        container.Parent = screenGui
-
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
-        corner.Parent = container
-
-        for j, text in ipairs(info.items) do
-            local frame = Instance.new("Frame")
-            frame.Name = info.items[j]:match("^([^:]+)")
-            frame.Size = UDim2.new(1, -10, 0, 25)
-            frame.Position = UDim2.new(0, 5, 0, 5 + (j-1) * 27)
-            frame.BackgroundTransparency = 1
-            frame.Parent = container
-
-            local valueLabel = Instance.new("TextLabel")
-            valueLabel.Name = "Value"
-            valueLabel.Size = UDim2.new(1, 0, 1, 0)
-            valueLabel.Position = UDim2.new(0, 0, 0, 0)
-            valueLabel.BackgroundTransparency = 1
-            valueLabel.Text = text
-            valueLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
-            valueLabel.TextScaled = true
-            valueLabel.Font = Enum.Font.GothamBold
-            valueLabel.TextXAlignment = Enum.TextXAlignment.Left
-            valueLabel.Parent = frame
-        end
-
-        qbInfoUIs[i] = screenGui
+        local valueLabel = Instance.new("TextLabel")
+        valueLabel.Name = "Value"
+        valueLabel.Size = UDim2.new(1, 0, 1, 0)
+        valueLabel.Position = UDim2.new(0, 0, 0, 0)
+        valueLabel.BackgroundTransparency = 1
+        valueLabel.Text = info.text
+        valueLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
+        valueLabel.TextScaled = true
+        valueLabel.Font = Enum.Font.GothamBold
+        valueLabel.TextXAlignment = Enum.TextXAlignment.Left
+        valueLabel.Parent = frame
     end
+
+    qbCards = screenGui
 end)
 
 local qbHighlight = Instance.new("Highlight")
@@ -543,7 +439,7 @@ local qbKeys = {
     end,
 }
 
--- Route and offset data
+-- Route and offset data 
 local sidewayRoutes = {"in/out", "flat"}
 local inAirAdditiveRoutes = {"stationary", "curl/comeback"}
 
@@ -786,21 +682,6 @@ local ShowMagHitbox = Tabs.Catching:AddToggle("ShowMagHitbox", {
     Description = "Displays the mag hitbox"
 })
 
-local RainbowMagnetsToggle = Tabs.Catching:AddToggle("RainbowMagnets", {
-    Title = "Rainbow Magnets",
-    Default = false,
-    Description = "Makes hitbox rainbow"
-})
-
-local RainbowMagnetsSpeed = Tabs.Catching:AddSlider("RainbowMagnetsSpeed", {
-    Title = "Rainbow Speed",
-    Description = "Rainbow hitbox speed",
-    Default = 3,
-    Min = 1,
-    Max = 5,
-    Rounding = 1
-})
-
 local PullVectorToggle = Tabs.Catching:AddToggle("PullVector", {
     Title = "Pull Vector",
     Default = false,
@@ -853,14 +734,14 @@ local AutoResetDelay = Tabs.Auto:AddSlider("AutoResetDelay", {
     Rounding = 1
 })
 
--- COSMETICS TAB
-local EditJerseyNameToggle = Tabs.Cosmetics:AddToggle("EditJerseyName", {
+-- TROLLING TAB
+local EditJerseyNameToggle = Tabs.Trolling:AddToggle("EditJerseyName", {
     Title = "Edit Jersey Name",
     Default = false,
     Description = "Change the name on your jersey"
 })
 
-local JerseyNameInput = Tabs.Cosmetics:AddInput("JerseyNameInput", {
+local JerseyNameInput = Tabs.Trolling:AddInput("JerseyNameInput", {
     Title = "Jersey Name",
     Default = "",
     Placeholder = "Enter jersey name...",
@@ -868,149 +749,11 @@ local JerseyNameInput = Tabs.Cosmetics:AddInput("JerseyNameInput", {
     Finished = false
 })
 
-local ShinyHelmetToggle = Tabs.Cosmetics:AddToggle("ShinyHelmet", {
+local ShinyHelmetToggle = Tabs.Trolling:AddToggle("ShinyHelmet", {
     Title = "Shiny Helmet",
     Default = false,
     Description = "Makes your helmet shiny and reflective"
 })
-
--- Jersey Name Editor Function
-local function editJerseyName(newName)
-    local character = player.Character
-    if not character then return end
-
-    -- Find the shirt object
-    local shirt = character:FindFirstChildOfClass("Shirt")
-    if shirt then
-        -- Try to modify shirt template if possible
-        pcall(function()
-            shirt.Name = newName
-        end)
-    end
-
-    -- Alternative: Create a GUI overlay for jersey name
-    local playerGui = player:FindFirstChild("PlayerGui")
-    if playerGui then
-        local existingGui = playerGui:FindFirstChild("JerseyNameGui")
-        if existingGui then
-            existingGui:Destroy()
-        end
-
-        local screenGui = Instance.new("ScreenGui")
-        screenGui.Name = "JerseyNameGui"
-        screenGui.Parent = playerGui
-
-        local nameLabel = Instance.new("TextLabel")
-        nameLabel.Size = UDim2.new(0, 200, 0, 50)
-        nameLabel.Position = UDim2.new(0.5, -100, 0.8, 0)
-        nameLabel.BackgroundTransparency = 1
-        nameLabel.Text = newName
-        nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        nameLabel.TextScaled = true
-        nameLabel.Font = Enum.Font.GothamBold
-        nameLabel.Parent = screenGui
-    end
-end
-
--- Shiny Helmet Function
-local function makeHelmetShiny(enabled)
-    local character = player.Character
-    if not character then return end
-
-    local head = character:FindFirstChild("Head")
-    if not head then return end
-
-    -- Find helmet accessories
-    for _, accessory in pairs(head:GetChildren()) do
-        if accessory:IsA("Accessory") then
-            local handle = accessory:FindFirstChild("Handle")
-            if handle and handle:IsA("BasePart") then
-                if enabled then
-                    -- Make helmet shiny and reflective
-                    handle.Material = Enum.Material.Neon
-                    handle.BrickColor = BrickColor.new("Cyan")
-                    handle.Reflectance = 0.8
-
-                    -- Add a glowing effect
-                    local pointLight = Instance.new("PointLight")
-                    pointLight.Color = Color3.fromRGB(0, 255, 255)
-                    pointLight.Brightness = 2
-                    pointLight.Range = 10
-                    pointLight.Parent = handle
-                else
-                    -- Restore original appearance
-                    handle.Material = Enum.Material.Plastic
-                    handle.Reflectance = 0
-
-                    -- Remove glow effect
-                    local pointLight = handle:FindFirstChild("PointLight")
-                    if pointLight then
-                        pointLight:Destroy()
-                    end
-                end
-            end
-        end
-    end
-
-    -- Also check for direct helmet parts
-    for _, child in pairs(head:GetChildren()) do
-        if child:IsA("BasePart") and child.Name:lower():find("helmet") then
-            if enabled then
-                child.Material = Enum.Material.Neon
-                child.BrickColor = BrickColor.new("Cyan")
-                child.Reflectance = 0.8
-
-                local pointLight = Instance.new("PointLight")
-                pointLight.Color = Color3.fromRGB(0, 255, 255)
-                pointLight.Brightness = 2
-                pointLight.Range = 10
-                pointLight.Parent = child
-            else
-                child.Material = Enum.Material.Plastic
-                child.Reflectance = 0
-
-                local pointLight = child:FindFirstChild("PointLight")
-                if pointLight then
-                    pointLight:Destroy()
-                end
-            end
-        end
-    end
-end
-
--- Connect cosmetic functions
-EditJerseyNameToggle:OnChanged(function()
-    if Options.EditJerseyName.Value then
-        editJerseyName(Options.JerseyNameInput.Value or "PLAYER")
-    end
-end)
-
-JerseyNameInput:OnChanged(function()
-    if Options.EditJerseyName.Value then
-        editJerseyName(Options.JerseyNameInput.Value)
-    end
-end)
-
-ShinyHelmetToggle:OnChanged(function()
-    makeHelmetShiny(Options.ShinyHelmet.Value)
-end)
-
--- Update helmet when character spawns
-player.CharacterAdded:Connect(function()
-    task.wait(2) -- Wait for character to fully load
-    if Options.ShinyHelmet.Value then
-        makeHelmetShiny(true)
-    end
-end)
-
--- Rainbow color function
-local function getRainbowColor(speed)
-    local time = os.clock() * speed
-    local r = math.sin(time) * 127 + 128
-    local g = math.sin(time + 2) * 127 + 128
-    local b = math.sin(time + 4) * 127 + 128
-    return Color3.fromRGB(r, g, b)
-end
 
 -- Functions needed for QBAimbot and other features
 function beamProjectile(g, v0, x0, t1)
@@ -1178,14 +921,11 @@ local function getTimeForHeight(from, to, height)
 end
 
 local function clamp_oobPosition(position)
-    -- Improved anti out of bounds - automatically calculates field boundaries
-    local fieldCenter = IS_PRACTICE and Vector3.new(245, 40.55, 0) or Vector3.new(0, 40.55, 0)
-    local fieldSize = Vector3.new(161, 75, 360)
-
+    qbInbPart.Size = Vector3.new(161 + (Options.QBAimbotAntiOOBThreshold.Value * 2), 75, 360 + (Options.QBAimbotAntiOOBThreshold.Value * 2))
     return Vector3.new(
-        math.clamp(position.X, -fieldSize.X / 2 + fieldCenter.X, fieldSize.X / 2 + fieldCenter.X),
-        math.clamp(position.Y, fieldCenter.Y - fieldSize.Y / 2, fieldCenter.Y + fieldSize.Y / 2),
-        math.clamp(position.Z, -fieldSize.Z / 2 + fieldCenter.Z, fieldSize.Z / 2 + fieldCenter.Z)
+        math.clamp(position.X, -qbInbPart.Size.X / 2 + qbInbPart.Position.X, qbInbPart.Size.X / 2 + qbInbPart.Position.X),
+        math.clamp(position.Y, -qbInbPart.Size.Y / 2, qbInbPart.Size.Y / 2),
+        math.clamp(position.Z, -qbInbPart.Size.Z / 2 + qbInbPart.Position.Z, qbInbPart.Size.Z / 2 + qbInbPart.Position.Z)
     )
 end
 
@@ -1603,20 +1343,9 @@ end
 task.spawn(function()
     while true do task.wait();
         local s, e = pcall(function()
-            -- Handle UI visibility
-            local qbEnabled = Options.QBAimbot.Value and (player.PlayerGui:FindFirstChild("BallGui") or camera.CameraSubject:IsA("BasePart"))
-
-            -- Show/hide change player UI
-            if changePlayerUI then
-                changePlayerUI.Enabled = Options.QBAimbotMobileUI.Value and qbEnabled
-            end
-
-            -- Show/hide QB info UIs
-            local showInfoUI = Options.QBAimbotUI.Value and qbEnabled
-            for i, ui in ipairs(qbInfoUIs) do
-                if ui then
-                    ui.Enabled = showInfoUI
-                end
+            local qbCardsEnabled = Options.QBAimbotUI.Value and Options.QBAimbot.Value and (player.PlayerGui:FindFirstChild("BallGui") or camera.CameraSubject:IsA("BasePart"))
+            if qbCards then
+                qbCards.Enabled = qbCardsEnabled
             end
 
             qbBeam.Enabled = Options.QBAimbotVisualise.Value and Options.QBAimbot.Value and (player.PlayerGui:FindFirstChild("BallGui") or camera.CameraSubject:IsA("BasePart"))
@@ -1712,27 +1441,15 @@ task.spawn(function()
             qbA0.CFrame = qbA0.Parent.CFrame:inverse() * cf1
             qbA1.CFrame = qbA1.Parent.CFrame:inverse() * cf2
 
-            -- Update individual QB info UIs
-            if showInfoUI then
+            if qbCards and qbCards:FindFirstChild("Container") then
                 pcall(function()
-                    -- UI 1: Player info
-                    if qbInfoUIs[1] and qbInfoUIs[1]:FindFirstChild("Container") then
-                        qbInfoUIs[1].Container.Player.Value.Text = "Player: " .. target.Name
-                        qbInfoUIs[1].Container.Route.Value.Text = "Route: " .. route
-                    end
-
-                    -- UI 2: Power info
-                    if qbInfoUIs[2] and qbInfoUIs[2]:FindFirstChild("Container") then
-                        qbInfoUIs[2].Container.Power.Value.Text = "Power: " .. power
-                        qbInfoUIs[2].Container.Angle.Value.Text = "Angle: " .. math.round(angle * 10) / 10
-                    end
-
-                    -- UI 3: Throw info
-                    if qbInfoUIs[3] and qbInfoUIs[3]:FindFirstChild("Container") then
-                        qbInfoUIs[3].Container.Mode.Value.Text = "Mode: " .. realThrowType
-                        qbInfoUIs[3].Container.Distance.Value.Text = "Distance: " .. math.round(distance)
-                        qbInfoUIs[3].Container.Interceptable.Value.Text = "Interceptable: " .. tostring(isInterceptable)
-                    end
+                    qbCards.Container.Angle.Value.Text = "Angle: " .. math.round(angle * 10) / 10
+                    qbCards.Container.Player.Value.Text = "Player: " .. target.Name
+                    qbCards.Container.Interceptable.Value.Text = "Interceptable: " .. tostring(isInterceptable)
+                    qbCards.Container.Power.Value.Text = "Power: " .. power
+                    qbCards.Container.Mode.Value.Text = "Mode: " .. realThrowType
+                    qbCards.Container.Route.Value.Text = "Route: " .. route
+                    qbCards.Container.Distance.Value.Text = "Distance: " .. math.round(distance)
                 end)
             end
 
