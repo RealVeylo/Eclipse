@@ -184,7 +184,6 @@ local Tabs = {
     Auto = Window:AddTab({ Title = "Auto", Icon = "bot", ScrollingEnabled = true }),
     Throwing = Window:AddTab({ Title = "Throwing", Icon = "send", ScrollingEnabled = true }),
     Player = Window:AddTab({ Title = "Player", Icon = "user", ScrollingEnabled = true }),
-    Trolling = Window:AddTab({ Title = "Trolling", Icon = "zap", ScrollingEnabled = true }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings", ScrollingEnabled = true })
 }
 
@@ -195,7 +194,7 @@ local Options = Fluent.Options
 local QBAimbotToggle = Tabs.Throwing:AddToggle("QBAimbot", {
     Title = "QB Aimbot",
     Default = false,
-    Description = "Advanced quarterback aimbot with prediction"
+    Description = "BETA (GETTING FIXED)"
 })
 
 -- UI Controls
@@ -229,14 +228,8 @@ local QBAimbot95PowerOnlyToggle = Tabs.Throwing:AddToggle("QBAimbot95PowerOnly",
     Description = "Forces 95 power throws"
 })
 
-local QBAimbotAntiOOBToggle = Tabs.Throwing:AddToggle("QBAimbotAntiOOB", {
-    Title = "Anti Out of Bounds",
-    Default = false,
-    Description = "Prevents throwing out of bounds"
-})
-
 local QBAimbotExperimentalToggle = Tabs.Throwing:AddToggle("QBAimbotExperimental", {
-    Title = "Experimental",
+    Title = "Prediction",
     Default = true,
     Description = "Uses experimental prediction algorithms"
 })
@@ -245,34 +238,6 @@ local QBAimbotAdjustPowerGUIToggle = Tabs.Throwing:AddToggle("QBAimbotAdjustPowe
     Title = "Adjust Power GUI",
     Default = false,
     Description = "Automatically adjusts in-game power GUI"
-})
-
--- Sliders
-local QBAimbotAntiOOBThreshold = Tabs.Throwing:AddSlider("QBAimbotAntiOOBThreshold", {
-    Title = "Anti OOB Threshold",
-    Description = "Threshold for out of bounds prevention",
-    Default = 0,
-    Min = -10,
-    Max = 10,
-    Rounding = 1
-})
-
-local QBAimbotXOffset = Tabs.Throwing:AddSlider("QBAimbotXOffset", {
-    Title = "X Offset",
-    Description = "Horizontal aim offset",
-    Default = 0,
-    Min = -5,
-    Max = 5,
-    Rounding = 1
-})
-
-local QBAimbotYOffset = Tabs.Throwing:AddSlider("QBAimbotYOffset", {
-    Title = "Y Offset",
-    Description = "Vertical aim offset",
-    Default = 0,
-    Min = -5,
-    Max = 5,
-    Rounding = 1
 })
 
 -- Keybinds for throw types
@@ -349,12 +314,9 @@ pcall(function()
     -- Create info labels
     local infoData = {
         {name = "Player", text = "Player: None"},
-        {name = "Angle", text = "Angle: 45"},
         {name = "Power", text = "Power: 65"},
         {name = "Mode", text = "Mode: Dive"},
         {name = "Route", text = "Route: None"},
-        {name = "Distance", text = "Distance: 0"},
-        {name = "Interceptable", text = "Interceptable: false"}
     }
 
     for i, info in ipairs(infoData) do
@@ -516,7 +478,7 @@ local QuickTPSpeed = Tabs.Player:AddSlider("QuickTPSpeed", {
     Rounding = 1
 })
 
-local QuickTPBind = Tabs.Physics:AddKeybind("QuickTPBind", {
+local QuickTPBind = Tabs.Player:AddKeybind("QuickTPBind", {
     Title = "Keybind",
     Default = "F",
     Mode = "Toggle",
@@ -605,7 +567,7 @@ local BigHeadSize = Tabs.Physics:AddSlider("BigHeadSize", {
 local AntiOOBToggle = Tabs.Physics:AddToggle("AntiOOB", {
     Title = "Anti Out Of Bounds",
     Default = false,
-    Description = "Prevents going out of bounds by toggling boundaries"
+    Description = "Prevents going out of bounds"
 })
 
 local SpeedToggle = Tabs.Player:AddToggle("Speed", {
@@ -734,27 +696,6 @@ local AutoResetDelay = Tabs.Auto:AddSlider("AutoResetDelay", {
     Rounding = 1
 })
 
--- TROLLING TAB
-local EditJerseyNameToggle = Tabs.Trolling:AddToggle("EditJerseyName", {
-    Title = "Edit Jersey Name",
-    Default = false,
-    Description = "Change the name on your jersey"
-})
-
-local JerseyNameInput = Tabs.Trolling:AddInput("JerseyNameInput", {
-    Title = "Jersey Name",
-    Default = "",
-    Placeholder = "Enter jersey name...",
-    Numeric = false,
-    Finished = false
-})
-
-local ShinyHelmetToggle = Tabs.Trolling:AddToggle("ShinyHelmet", {
-    Title = "Shiny Helmet",
-    Default = false,
-    Description = "Makes your helmet shiny and reflective"
-})
-
 -- Functions needed for QBAimbot and other features
 function beamProjectile(g, v0, x0, t1)
     local c = 0.5*0.5*0.5;
@@ -787,14 +728,6 @@ function beamProjectile(g, v0, x0, t1)
     )
 
     return curve0, -curve1, cf1, cf2;
-end
-
-local function getPing()
-    return statsService.PerformanceStats.Ping:GetValue()
-end
-
-local function getServerPing()
-    return statsService.Network.ServerStatsItem['Data Ping']:GetValue()
 end
 
 local function findClosestBall()
@@ -1050,7 +983,7 @@ local function findRoute(character)
         ["flat"] = function()
             return isSideways() and distance <= 125
         end,
-        ["curl/comeback"] = function()
+        ["comeback"] = function()
             return towardsQB()
         end,
         ["stationary"] = function()
@@ -1445,11 +1378,8 @@ task.spawn(function()
                 pcall(function()
                     qbCards.Container.Angle.Value.Text = "Angle: " .. math.round(angle * 10) / 10
                     qbCards.Container.Player.Value.Text = "Player: " .. target.Name
-                    qbCards.Container.Interceptable.Value.Text = "Interceptable: " .. tostring(isInterceptable)
-                    qbCards.Container.Power.Value.Text = "Power: " .. power
                     qbCards.Container.Mode.Value.Text = "Mode: " .. realThrowType
                     qbCards.Container.Route.Value.Text = "Route: " .. route
-                    qbCards.Container.Distance.Value.Text = "Distance: " .. math.round(distance)
                 end)
             end
 
