@@ -1,0 +1,1376 @@
+if getgenv().Sense_Hub then warn("Sense Hub is already executed") return end
+getgenv().Sense_Hub = true
+
+-- Global variables
+local angleTick = os.clock()
+
+-- Safely get Players service
+local players = game:GetService("Players")
+local player
+
+local tweenService = game:GetService("TweenService")
+local statsService = game:GetService("Stats")
+local runService = game:GetService("RunService")
+local userInputService = game:GetService("UserInputService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local httpService = game:GetService("HttpService")
+local starterGui = game:GetService("StarterGui")
+local debris = game:GetService("Debris")
+
+-- Get player reference safely
+local success, result = pcall(function()
+    return players.LocalPlayer
+end)
+if success then
+    player = result
+else
+    -- Fallback if we can't get the player
+    for _, p in pairs(players:GetPlayers()) do
+        player = p
+        break
+    end
+end
+
+local mouse
+pcall(function()
+    mouse = player and player:GetMouse()
+end)
+
+local camera = workspace.CurrentCamera
+local values = nil
+
+pcall(function()
+    values = replicatedStorage:FindFirstChild("Values")
+end)
+
+-- Enhanced Executor Detection
+local function getExecutorName()
+    if typeof(getexecutorname) == "function" then
+        return getexecutorname()
+    elseif typeof(identifyexecutor) == "function" then
+        return identifyexecutor()
+    elseif KRNL_LOADED then
+        return "Krnl"
+    elseif syn and syn.request then
+        return "Synapse X"
+    elseif PROTOSMASHER_LOADED then
+        return "ProtoSmasher"
+    elseif shadow_env then
+        return "Shadow"
+    elseif jit then
+        return "JJSploit"
+    elseif getrenv().WrapGlobal then
+        return "WeAreDevs"
+    elseif getrenv().isvm and getrenv().checkcaller then
+        return "Scriptware"
+    elseif OXYGEN_LOADED then
+        return "Oxygen U"
+    elseif _G.XENO_LOADED or getgenv().XENO_LOADED then
+        return "Xeno"
+    elseif _G.BUNNI_LOADED or getgenv().BUNNI_LOADED then
+        return "Bunni"
+    else
+        return "Unknown"
+    end
+end
+
+local EXECUTOR_NAME = getExecutorName()
+local IS_PRACTICE = game.PlaceId == 8206123457
+local IS_SOLARA = string.match(EXECUTOR_NAME:lower(), "solara") ~= nil
+local IS_XENO = string.match(EXECUTOR_NAME:lower(), "xeno") ~= nil
+local IS_BUNNI = string.match(EXECUTOR_NAME:lower(), "bunni") ~= nil
+local AC_BYPASS = IS_PRACTICE
+
+-- Print executor detection for debugging
+print("[Sense Hub] Detected Executor:", EXECUTOR_NAME)
+
+-- Enhanced function availability checks
+local function checkFunctionAvailability()
+    local functions = {
+        firetouchinterest = firetouchinterest or nil,
+        hookmetamethod = hookmetamethod or nil,
+        getnamecallmethod = getnamecallmethod or nil,
+        checkcaller = checkcaller or nil,
+        hookfunction = hookfunction or nil,
+        getgc = getgc or nil,
+        getprotos = getprotos or nil,
+        getconstants = getconstants or nil,
+        getproto = getproto or nil,
+        islclosure = islclosure or nil
+    }
+
+    -- Fallback implementations for missing functions
+    if not functions.checkcaller then
+        functions.checkcaller = function() return false end
+    end
+
+    if not functions.firetouchinterest then
+        functions.firetouchinterest = function() end
+        warn("[Sense Hub] firetouchinterest not available - magnets may not work")
+    end
+
+    return functions
+end
+
+local funcs = checkFunctionAvailability()
+
+local moveToUsing = {}
+
+-- Clean up old moveToUsing times
+task.spawn(function()
+    while true do
+        task.wait(5)
+        local currentTime = os.clock()
+        for i = #moveToUsing, 1, -1 do
+            if currentTime - moveToUsing[i] > 2 then
+                table.remove(moveToUsing, i)
+            end
+        end
+    end
+end)
+
+-- Track last moveTo time
+task.spawn(function()
+    local oldMoveTo = player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.MoveTo
+
+    if oldMoveTo then
+        player.Character.Humanoid.MoveTo = function(self, position, ...)
+            table.insert(moveToUsing, os.clock())
+            return oldMoveTo(self, position, ...)
+        end
+    end
+
+    player.CharacterAdded:Connect(function(character)
+        local humanoid = character:WaitForChild("Humanoid")
+        local oldMoveTo = humanoid.MoveTo
+
+        humanoid.MoveTo = function(self, position, ...)
+            table.insert(moveToUsing, os.clock())
+            return oldMoveTo(self, position, ...)
+        end
+    end)
+end)
+
+if not values or IS_PRACTICE then
+    if replicatedStorage:FindFirstChild("Values") then
+        replicatedStorage:FindFirstChild("Values"):Destroy()
+    end
+    values = Instance.new("Folder")
+    local status = Instance.new("StringValue")
+    status.Name = "Status"
+    status.Value = "InPlay"
+    status.Parent = values
+    values.Parent = replicatedStorage
+    values.Name = "Values"
+end
+
+if not LPH_OBFUSCATED then
+    getfenv().LPH_NO_VIRTUALIZE = function(f) return f end
+end
+
+-- Enhanced AC Bypass with multi-executor support
+local remotes = replicatedStorage:FindFirstChild("Remotes")
+local characterSoundEvent = remotes and remotes:FindFirstChild("CharacterSoundEvent")
+local Hooks = {}
+local HandshakeInts = {}
+
+-- Enhanced AC bypass with better detection for all executors
+LPH_NO_VIRTUALIZE(function()
+    if funcs.getgc and funcs.getprotos and funcs.getconstants and funcs.getproto and funcs.hookfunction and funcs.islclosure then
+        for i, v in getgc() do
+            if typeof(v) == "function" and funcs.islclosure(v) then
+                local success, result = pcall(function()
+                    return #funcs.getprotos(v) == 1 and table.find(funcs.getconstants(funcs.getproto(v, 1)), 4000001)
+                end)
+                if success and result then
+                    pcall(function()
+                        funcs.hookfunction(v, function() end)
+                    end)
+                end
+            end
+        end
+    end
+end)()
+
+-- Enhanced Handshake hook with multi-executor compatibility
+if characterSoundEvent and funcs.hookmetamethod and funcs.getnamecallmethod and funcs.checkcaller then
+    local success, hook = pcall(function()
+        return funcs.hookmetamethod(game, "__namecall", LPH_NO_VIRTUALIZE(function(self, ...)
+            local Method = funcs.getnamecallmethod()
+            local Args = {...}
+
+            if not funcs.checkcaller() and (self == characterSoundEvent) and (Method == "fireServer") and Args[1] and (string.find(tostring(Args[1]), "AC") or false) then
+                if (#HandshakeInts == 0) then
+                    if Args[2] and type(Args[2]) == "table" and #Args[2] >= 18 then
+                        HandshakeInts = {table.unpack(Args[2], 2, 18)}
+                    end
+                else
+                    if Args[2] and type(Args[2]) == "table" then
+                        for i, v in pairs(HandshakeInts) do
+                            if Args[2][i + 1] then
+                                Args[2][i + 1] = v
+                            end
+                        end
+                    end
+                end
+            end
+
+            return Hooks.__namecall(self, ...)
+        end))
+    end)
+
+    if success then
+        Hooks.__namecall = hook
+    else
+        warn("[Sense Hub] Failed to hook metamethod - AC bypass may not work properly")
+    end
+end
+
+task.wait(1)
+
+if not isfolder("Sense Hub") then
+    makefolder("Sense Hub")
+end
+
+local ping = 0
+local fps = 0
+local fpsCapEnabled = false
+local fpsCapValue = 60
+local lastFrameTime = 0
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local function safeIndex(t, index)
+    if type(t) ~= "table" and type(t) ~= "userdata" then
+        return nil
+    end
+
+    local success, result = pcall(function()
+        return t[index]
+    end)
+
+    if success then
+        return result
+    else
+        return nil
+    end
+end
+
+local Window = Fluent:CreateWindow({
+    Title = "Sense Hub - Free [" .. EXECUTOR_NAME .. "]",
+    SubTitle = "by Veylo",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(595, 355),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl,
+    CanResize = true,
+    ScrollSpeed = 30,
+    ScrollingEnabled = true
+})
+
+local Tabs = {
+    Catching = Window:AddTab({ Title = "Catching", Icon = "radio", ScrollingEnabled = true }),
+    Visuals = Window:AddTab({ Title = "Visuals", Icon = "eye", ScrollingEnabled = true }),
+    Player = Window:AddTab({ Title = "Player", Icon = "user", ScrollingEnabled = true }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings", ScrollingEnabled = true }),
+    Info = Window:AddTab({ Title = "Info", Icon = "info", ScrollingEnabled = true })
+}
+
+local Options = Fluent.Options
+
+-- Create Mobile Toggle Button (Using Fluent MinimizeKey Method)
+local toggleButton = nil
+
+task.spawn(function()
+    if not getgenv().LoadedMobileUI == true then
+        getgenv().LoadedMobileUI = true
+
+        local OpenUI = Instance.new("ScreenGui")
+        local ImageButton = Instance.new("ImageButton")
+        local UICorner = Instance.new("UICorner")
+
+        OpenUI.Name = "OpenUI"
+        OpenUI.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+        OpenUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+        ImageButton.Parent = OpenUI
+        ImageButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        ImageButton.BackgroundTransparency = 0.2
+        ImageButton.Position = UDim2.new(0, 10, 0, 10)
+        ImageButton.Size = UDim2.new(0, 50, 0, 50)
+        ImageButton.Image = "rbxassetid://129937299302497"
+        ImageButton.ImageTransparency = 0.1
+        ImageButton.Draggable = true
+        ImageButton.BorderSizePixel = 2
+        ImageButton.BorderColor3 = Color3.fromRGB(0, 255, 255)
+
+        UICorner.CornerRadius = UDim.new(0, 8)
+        UICorner.Parent = ImageButton
+
+        -- Toggle function using Fluent's MinimizeKey
+        ImageButton.MouseButton1Click:Connect(function()
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+        end)
+
+        toggleButton = OpenUI
+    end
+end)
+
+-- Rainbow color function
+local function getRainbowColor(speed)
+    local time = os.clock() * speed
+    local r = math.sin(time) * 127 + 128
+    local g = math.sin(time + 2) * 127 + 128
+    local b = math.sin(time + 4) * 127 + 128
+    return Color3.fromRGB(r, g, b)
+end
+
+-- Functions needed for features
+function beamProjectile(g, v0, x0, t1)
+    local c = 0.5*0.5*0.5;
+    local p3 = 0.5*g*t1*t1 + v0*t1 + x0;
+    local p2 = p3 - (g*t1*t1 + v0*t1)/3;
+    local p1 = (c*g*t1*t1 + 0.5*v0*t1 + x0 - c*(x0+p3))/(3*c) - p2;
+
+    local curve0 = (p1 - x0).magnitude;
+    local curve1 = (p2 - p3).magnitude;
+
+    local b = (x0 - p3).unit;
+    local r1 = (p1 - x0).unit;
+    local u1 = r1:Cross(b).unit;
+    local r2 = (p2 - p3).unit;
+    local u2 = r2:Cross(b).unit;
+    b = u1:Cross(r1).unit;
+
+    local cf1 = CFrame.new(
+        x0.x, x0.y, x0.z,
+        r1.x, u1.x, b.x,
+        r1.y, u1.y, b.y,
+        r1.z, u1.z, b.z
+    )
+
+    local cf2 = CFrame.new(
+        p3.x, p3.y, p3.z,
+        r2.x, u2.x, b.x,
+        r2.y, u2.y, b.y,
+        r2.z, u2.z, b.z
+    )
+
+    return curve0, -curve1, cf1, cf2;
+end
+
+local function getPing()
+    return statsService.PerformanceStats.Ping:GetValue()
+end
+
+local function getServerPing()
+    return statsService.Network.ServerStatsItem['Data Ping']:GetValue()
+end
+
+local function findClosestBall()
+    local lowestDistance = math.huge
+    local nearestBall = nil
+
+    local character = player.Character
+    if not character then return nil end
+
+    for index, ball in pairs(workspace:GetChildren()) do
+        if ball.Name ~= "Football" then continue end
+        if not ball:IsA("BasePart") then continue end
+        if not character:FindFirstChild("HumanoidRootPart") then continue end
+        local distance = (ball.Position - character.HumanoidRootPart.Position).Magnitude
+
+        if distance < lowestDistance then
+            nearestBall = ball
+            lowestDistance = distance
+        end
+    end
+
+    return nearestBall
+end
+
+local function getNearestPartToPartFromParts(part, parts)
+    local lowestDistance = math.huge
+    local nearestPart = nil
+
+    for index, p in pairs(parts) do
+        local distance = (part.Position - p.Position).Magnitude
+
+        if distance < lowestDistance then
+            nearestPart = p
+            lowestDistance = distance
+        end
+    end
+
+    return nearestPart
+end
+
+local function findPossessor()
+    if not players then return nil end
+
+    for _, plr in pairs(players:GetPlayers()) do
+        if not plr or not plr.Character then continue end
+        local character = plr.Character
+        if not character:FindFirstChildWhichIsA("Tool") then continue end
+        return character
+    end
+    return nil
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        ping = ( getPing() + getServerPing() ) / 1000
+    end
+end)
+
+-- Enhanced FPS tracking with proper cap functionality
+task.spawn(function()
+    local frameCount = 0
+    local fpsCountTime = tick()
+
+    -- FPS counter
+    runService.Heartbeat:Connect(function()
+        frameCount = frameCount + 1
+        local currentTime = tick()
+
+        if currentTime - fpsCountTime >= 1 then
+            fps = frameCount
+            frameCount = 0
+            fpsCountTime = currentTime
+        end
+    end)
+end)
+
+-- Proper FPS Cap implementation
+task.spawn(function()
+    while true do
+        if fpsCapEnabled and fpsCapValue > 0 then
+            local targetFrameTime = 1 / fpsCapValue
+            local currentTime = tick()
+            local deltaTime = currentTime - lastFrameTime
+
+            if deltaTime < targetFrameTime then
+                local waitTime = targetFrameTime - deltaTime
+                task.wait(waitTime)
+            end
+
+            lastFrameTime = tick()
+        else
+            task.wait()
+        end
+    end
+end)
+
+-- VISUALS TAB - Renamed from Physics
+local VisualizeBallPathToggle = Tabs.Visuals:AddToggle("VisualizeBallPath", {
+    Title = "Visualize Ball Path",
+    Default = false,
+    Description = "Shows the path of the ball"
+})
+
+local FPSCapToggle = Tabs.Visuals:AddToggle("FPSCap", {
+    Title = "FPS Cap",
+    Default = false,
+    Description = "Limits the frame rate"
+})
+
+local FPSCapSlider = Tabs.Visuals:AddSlider("FPSCapValue", {
+    Title = "FPS Cap Value",
+    Description = "Set FPS cap",
+    Default = 60,
+    Min = 1,
+    Max = 60,
+    Rounding = 1
+})
+
+local RemoveTexturesToggle = Tabs.Visuals:AddToggle("RemoveTextures", {
+    Title = "Remove Textures",
+    Default = false,
+    Description = "Removes textures for better performance"
+})
+
+-- FPS Cap functionality
+FPSCapToggle:OnChanged(function()
+    fpsCapEnabled = Options.FPSCap.Value
+    print("[Sense Hub] FPS Cap:", fpsCapEnabled and "Enabled" or "Disabled")
+end)
+
+FPSCapSlider:OnChanged(function()
+    fpsCapValue = Options.FPSCapValue.Value
+    print("[Sense Hub] FPS Cap Value:", fpsCapValue)
+end)
+
+-- Remove Textures functionality
+local function applyTextureRemoval(enabled)
+    pcall(function()
+        if enabled then
+            -- Apply texture removal settings equivalent to Bloxstrap flags
+            settings().Rendering.QualityLevel = "Level01"
+
+            -- Set debug flags for texture removal
+            local success1, result1 = pcall(function()
+                settings():GetService("RenderSettings").DebugSkyGray = true
+            end)
+
+            local success2, result2 = pcall(function()
+                settings():GetService("RenderSettings").DebugTextureManagerSkipMips = 999
+            end)
+
+            -- Alternative method using setfflag if available
+            if typeof(setfflag) == "function" then
+                pcall(function()
+                    setfflag("DebugSkyGray", "True")
+                    setfflag("DebugTextureManagerSkipMips", "999")
+                end)
+            end
+
+            -- Manual texture removal for existing objects
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("Decal") or obj:IsA("Texture") then
+                    obj.Transparency = 1
+                elseif obj:IsA("SurfaceGui") then
+                    obj.Enabled = false
+                elseif obj:IsA("MeshPart") then
+                    obj.TextureID = ""
+                end
+            end
+
+            -- Remove textures from lighting
+            local lighting = game:GetService("Lighting")
+            for _, effect in pairs(lighting:GetChildren()) do
+                if effect:IsA("BlurEffect") or effect:IsA("BloomEffect") or
+                   effect:IsA("DepthOfFieldEffect") or effect:IsA("SunRaysEffect") or
+                   effect:IsA("ColorCorrectionEffect") then
+                    effect.Enabled = false
+                end
+            end
+
+            -- Set sky to gray
+            if lighting:FindFirstChild("Sky") then
+                local sky = lighting.Sky
+                sky.SkyboxBk = ""
+                sky.SkyboxDn = ""
+                sky.SkyboxFt = ""
+                sky.SkyboxLf = ""
+                sky.SkyboxRt = ""
+                sky.SkyboxUp = ""
+            end
+
+            print("[Sense Hub] Textures removed for better performance")
+        else
+            -- Reset settings when disabled
+            settings().Rendering.QualityLevel = "Automatic"
+
+            pcall(function()
+                settings():GetService("RenderSettings").DebugSkyGray = false
+            end)
+
+            pcall(function()
+                settings():GetService("RenderSettings").DebugTextureManagerSkipMips = 0
+            end)
+
+            if typeof(setfflag) == "function" then
+                pcall(function()
+                    setfflag("DebugSkyGray", "False")
+                    setfflag("DebugTextureManagerSkipMips", "0")
+                end)
+            end
+
+            print("[Sense Hub] Texture removal disabled")
+        end
+    end)
+end
+
+RemoveTexturesToggle:OnChanged(function()
+    applyTextureRemoval(Options.RemoveTextures.Value)
+end)
+
+-- Apply texture removal to new objects when enabled
+workspace.DescendantAdded:Connect(function(obj)
+    if Options.RemoveTextures and Options.RemoveTextures.Value then
+        pcall(function()
+            if obj:IsA("Decal") or obj:IsA("Texture") then
+                obj.Transparency = 1
+            elseif obj:IsA("SurfaceGui") then
+                obj.Enabled = false
+            elseif obj:IsA("MeshPart") then
+                obj.TextureID = ""
+            end
+        end)
+    end
+end)
+
+-- CATCHING TAB - Limited Magnets
+local MagnetsToggle = Tabs.Catching:AddToggle("Magnets", {
+    Title = "Magnets",
+    Default = false,
+    Description = "Helps you catch the ball"
+})
+
+local MagnetsType = Tabs.Catching:AddDropdown("MagnetsType", {
+    Title = "Type",
+    Values = {"Blatant", "Legit"},
+    Default = "Legit",
+    Description = "How obvious the magnets behavior is"
+})
+
+local MagnetsCustomRadius = Tabs.Catching:AddSlider("MagnetsCustomRadius", {
+    Title = "Radius",
+    Description = "Radius for the Magnets",
+    Default = 15,
+    Min = 0,
+    Max = 20,
+    Rounding = 1
+})
+
+local ShowMagHitbox = Tabs.Catching:AddToggle("ShowMagHitbox", {
+    Title = "Visualise Hitbox",
+    Default = false,
+    Description = "Displays the mag hitbox"
+})
+
+local RainbowMagnetsToggle = Tabs.Catching:AddToggle("RainbowMagnets", {
+    Title = "Rainbow Magnets",
+    Default = false,
+    Description = "Makes hitbox rainbow"
+})
+
+local RainbowMagnetsSpeed = Tabs.Catching:AddSlider("RainbowMagnetsSpeed", {
+    Title = "Rainbow Speed",
+    Description = "Rainbow hitbox speed",
+    Default = 3,
+    Min = 1,
+    Max = 5,
+    Rounding = 1
+})
+
+local PullVectorToggle = Tabs.Catching:AddToggle("PullVector", {
+    Title = "Pull Vector",
+    Default = false,
+    Description = "Pulls you towards the ball"
+})
+
+local PullVectorDistance = Tabs.Catching:AddSlider("PullVectorDistance", {
+    Title = "Distance",
+    Description = "Maximum distance to activate pull",
+    Default = 50,
+    Min = 0,
+    Max = 100,
+    Rounding = 1
+})
+
+local PullVectorType = Tabs.Catching:AddDropdown("PullVectorType", {
+    Title = "Type",
+    Values = {"Glide", "Teleport"},
+    Default = "Glide"
+})
+
+local PullVectorPower = Tabs.Catching:AddSlider("PullVectorPower", {
+    Title = "Power",
+    Description = "Strength of the pull effect",
+    Default = 3,
+    Min = 1,
+    Max = 5,
+    Rounding = 1
+})
+
+-- PLAYER TAB - Limited features
+local ArmResizements = Tabs.Player:AddToggle("ArmResizements", {
+    Title = "Arm Resizements",
+    Default = false,
+    Description = "Resize character arms for better reach"
+})
+
+local ArmResizementValue = Tabs.Player:AddSlider("ArmResizementValue", {
+    Title = "Arm Size",
+    Description = "Arm length (0=normal, 5=long)",
+    Default = 2,
+    Min = 0,
+    Max = 5,
+    Rounding = 1
+})
+
+local SpeedToggle = Tabs.Player:AddToggle("Speed", {
+    Title = "Speed",
+    Default = false,
+    Description = "Increases your movement speed"
+})
+
+local SpeedValue = Tabs.Player:AddSlider("SpeedValue", {
+    Title = "Speed",
+    Description = "Speed multiplier",
+    Default = 22,
+    Min = 20,
+    Max = 23,
+    Rounding = 1
+})
+
+local JumpPowerToggle = Tabs.Player:AddToggle("JumpPower", {
+    Title = "Jump Power",
+    Default = false,
+    Description = "Increases your jump height"
+})
+
+local JumpPowerValue = Tabs.Player:AddSlider("JumpPowerValue", {
+    Title = "Power",
+    Description = "Jump power multiplier",
+    Default = 50,
+    Min = 50,
+    Max = 60,
+    Rounding = 1
+})
+
+local AngleAssistToggle = Tabs.Player:AddToggle("AngleAssist", {
+    Title = "Angle Enhancer",
+    Default = false,
+    Description = "Enhances your angles"
+})
+
+local AngleAssistJP = Tabs.Player:AddSlider("AngleAssistJP", {
+    Title = "Angle Power",
+    Description = "Jump power for angle assist",
+    Default = 50,
+    Min = 50,
+    Max = 60,
+    Rounding = 1
+})
+
+-- Enhanced firetouchinterest with multi-executor compatibility
+if funcs.firetouchinterest then
+    firetouchinterest = funcs.firetouchinterest
+else
+    firetouchinterest = function()
+        warn("[Sense Hub] firetouchinterest not available on this executor")
+    end
+end
+
+-- Enhanced firetouchinterest for different executors
+if IS_SOLARA or IS_XENO or IS_BUNNI then
+    local originalFiretouchinterest = firetouchinterest
+    firetouchinterest = function(part2, part1, state)
+        if AC_BYPASS then
+            return originalFiretouchinterest(part2, part1, state)
+        else
+            state = state == 1
+            local fakeBall = fakeBalls[part1]
+            if not fakeBall then return end
+
+            pcall(function()
+                local direction = (part2.Position - fakeBall.Position).Unit
+                local distance = (part2.Position - fakeBall.Position).Magnitude
+
+                for i = 1,5,1 do
+                    local percentage = i/5 + math.random(1, 2) / 100
+                    part1.CFrame = fakeBall.CFrame + (direction * distance * percentage)
+                end
+            end)
+        end
+    end
+end
+
+local fakeBalls = {}
+local pullVectoredBalls = {}
+local velocity = {}
+local isCatching = false
+
+local part = Instance.new("Part")
+part.Transparency = 0.5
+part.Anchored = true
+part.CanCollide = false
+part.CastShadow = false
+part.Color = Color3.fromRGB(0, 255, 255)
+part.Shape = Enum.PartType.Ball
+part.Material = Enum.Material.ForceField
+part.Parent = workspace
+
+-- Clear tables periodically to prevent memory leaks
+task.spawn(function()
+    while true do
+        task.wait(30)
+        for ball, _ in pairs(pullVectoredBalls) do
+            if not ball or not ball.Parent then
+                pullVectoredBalls[ball] = nil
+            end
+        end
+
+        for ball, _ in pairs(fakeBalls) do
+            if not ball or not ball.Parent then
+                if fakeBalls[ball] and fakeBalls[ball].Parent then
+                    pcall(function()
+                        fakeBalls[ball]:Destroy()
+                    end)
+                end
+                fakeBalls[ball] = nil
+            end
+        end
+
+        for ball, _ in pairs(velocity) do
+            if not ball or not ball.Parent then
+                velocity[ball] = nil
+            end
+        end
+    end
+end)
+
+local function createCatchEffect(position)
+    if not position then return end
+
+    pcall(function()
+        local effect = Instance.new("Explosion")
+        effect.Position = position
+        effect.BlastRadius = 0
+        effect.BlastPressure = 0
+        effect.Visible = false
+        effect.Parent = workspace
+        debris:AddItem(effect, 2)
+    end)
+end
+
+local function onCharacterCatching(character)
+    if not character then return end
+
+    local arm
+    local success = pcall(function()
+        arm = character:WaitForChild('Left Arm', 5)
+    end)
+
+    if not success or not arm then return end
+
+    arm.ChildAdded:Connect(function(child)
+        if not child:IsA("Weld") then return end
+        isCatching = true
+
+        -- Create catch effect only if magnets are enabled
+        if Options.Magnets and Options.Magnets.Value then
+            local ball = findClosestBall()
+            if ball then
+                createCatchEffect(ball.Position)
+            end
+        end
+
+        task.wait(1.7)
+        isCatching = false
+    end)
+end
+
+workspace.ChildAdded:Connect(function(ball)
+    if ball.Name ~= "Football" then return end
+    if not ball:IsA("BasePart") then return end
+    task.wait()
+
+    -- Ball velocity tracking and enhanced fake ball system
+    local lastPosition = ball.Position
+    local lastCheck = os.clock()
+    local initalVelocity = Vector3.new(0, 0, 0)
+    pcall(function()
+        if ball and typeof(ball) == "Instance" and ball:IsA("BasePart") then
+            initalVelocity = ball.Velocity
+        end
+    end)
+
+    if (IS_SOLARA or IS_XENO or IS_BUNNI) and ball:FindFirstChildWhichIsA("Trail") and not ball.Anchored and camera.CameraSubject ~= ball then
+        local fakeBall = ball:Clone()
+        fakeBall.Name = "FFootball"
+        fakeBall.Parent = workspace
+        fakeBall.Anchored = true
+        fakeBall.CanCollide = false
+        if fakeBall:FindFirstChildWhichIsA('PointLight') then
+            fakeBall:FindFirstChildWhichIsA('PointLight'):Destroy()
+        end
+        ball.Transparency = 1
+        local spiralDegrees = 0
+        fakeBalls[ball] = fakeBall
+        task.spawn(function()
+            while ball.Parent == workspace do
+                local dt = runService.Heartbeat:Wait()
+                spiralDegrees += 1500 * dt
+                initalVelocity += Vector3.new(0, -28 * dt, 0)
+                fakeBall.Position += initalVelocity * dt
+                fakeBall.CFrame = CFrame.lookAt(fakeBall.Position, fakeBall.Position + initalVelocity) * CFrame.Angles(math.rad(90), math.rad(spiralDegrees), 0)
+
+                if ball:FindFirstChildWhichIsA("Trail") then
+                    ball:FindFirstChildWhichIsA("Trail").Enabled = false
+                end
+            end
+            if fakeBall and fakeBall.Parent then
+                pcall(function()
+                    fakeBall:Destroy()
+                end)
+            end
+            fakeBalls[ball] = nil
+        end)
+    end
+
+    task.spawn(function()
+        while ball.Parent do
+            task.wait(0.1)
+            local t = (os.clock() - lastCheck)
+            pcall(function()
+                if ball and typeof(ball) == "Instance" and ball:IsA("BasePart") then
+                    velocity[ball] = (ball.Position - lastPosition) / t
+                end
+            end)
+            lastCheck = os.clock()
+            pcall(function()
+                if ball and typeof(ball) == "Instance" and ball:IsA("BasePart") then
+                    lastPosition = ball.Position
+                end
+            end)
+        end
+        velocity[ball] = nil
+        fakeBalls[ball] = nil
+    end)
+
+    -- Ball Path Visualization
+    task.spawn(function()
+        if not Options.VisualizeBallPath.Value then return end
+        local currentInitialVelocity = Vector3.new(0,0,0)
+        pcall(function()
+            if ball and ball:IsA("BasePart") then currentInitialVelocity = ball.Velocity end
+        end)
+
+        local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+        a0.Parent = workspace.Terrain; a1.Parent = workspace.Terrain
+
+        local beam = Instance.new("Beam", workspace.Terrain)
+        beam.Attachment0 = a0
+        beam.Attachment1 = a1
+        beam.Segments = 500
+        beam.Width0 = 0.5
+        beam.Width1 = 0.5
+        beam.Transparency = NumberSequence.new(0)
+        beam.Color = ColorSequence.new(Color3.fromRGB(0, 255, 255))
+
+        local g = Vector3.new(0, -28 ,0)
+        local x0 = ball.Position
+        local v0 = currentInitialVelocity
+
+        local curve0, curve1, cf1, cf2 = beamProjectile(g, v0, x0, 5)
+
+        beam.CurveSize0 = curve0
+        beam.CurveSize1 = curve1
+        a0.CFrame = a0.Parent.CFrame:inverse() * cf1
+        a1.CFrame = a1.Parent.CFrame:inverse() * cf2
+
+        repeat task.wait() until not ball or ball.Parent ~= workspace
+
+        pcall(function()
+            if beam then beam:Destroy() end
+            if a0 then a0:Destroy() end
+            if a1 then a1:Destroy() end
+        end)
+    end)
+end)
+
+-- Enhanced Magnet Hitbox Logic with better error handling
+task.spawn(function()
+    while true do
+        task.wait(1/60)
+        pcall(function()
+            local ball = findClosestBall()
+            local character = player.Character
+            local showHitboxOption = safeIndex(Options.ShowMagHitbox, "Value")
+            local magnetsEnabled = Options.Magnets and Options.Magnets.Value
+
+            -- Always hide part first if magnets not enabled
+            if not ball or not character or not magnetsEnabled then
+                if part and part.Parent then
+                    part.Parent = nil
+                end
+                return
+            end
+
+            local catchLeft = character:FindFirstChild("CatchLeft")
+            local catchRight = character:FindFirstChild("CatchRight")
+
+            if not catchLeft or not catchRight then
+                if part and part.Parent then
+                    part.Parent = nil
+                end
+                return
+            end
+
+            local catchPart = getNearestPartToPartFromParts(ball, {catchLeft, catchRight})
+
+            if not catchPart then
+                if part and part.Parent then
+                    part.Parent = nil
+                end
+                return
+            end
+
+            local distance = (catchPart.Position - ball.Position).Magnitude
+            local radius = (Options.MagnetsType.Value == "Blatant" and 50 or 6)
+
+            -- Use custom radius if within limits
+            if Options.MagnetsCustomRadius and Options.MagnetsCustomRadius.Value then
+                radius = math.min(Options.MagnetsCustomRadius.Value, 20)
+            end
+
+            -- Always update part properties when we have a valid ball and magnets enabled
+            if part then
+                part.Position = (fakeBalls[ball] or ball).Position
+                part.Size = Vector3.new(radius, radius, radius)
+                part.Material = Enum.Material.ForceField
+                part.Transparency = 0.6
+
+                -- Update color
+                if Options.RainbowMagnets and Options.RainbowMagnets.Value then
+                    part.Color = getRainbowColor(Options.RainbowMagnetsSpeed.Value)
+                else
+                    part.Color = Color3.fromRGB(0, 255, 255)
+                end
+
+                -- Show or hide based on showHitboxOption
+                if showHitboxOption then
+                    part.Parent = workspace
+                else
+                    part.Parent = nil
+                end
+            end
+
+            -- Enhanced magnet functionality with executor-specific handling
+            if not isCatching then
+                if distance < radius then
+                    if IS_SOLARA or IS_XENO or IS_BUNNI then
+                        -- Enhanced handling for these executors
+                        pcall(function()
+                            firetouchinterest(catchPart, ball, 0)
+                            task.wait(0.01)
+                            firetouchinterest(catchPart, ball, 1)
+                        end)
+                    else
+                        -- Standard handling for other executors
+                        pcall(function()
+                            firetouchinterest(catchPart, ball, 0)
+                            firetouchinterest(catchPart, ball, 1)
+                        end)
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait()
+        pcall(function()
+            local ball = findClosestBall()
+            if not ball then return end
+
+            local character = player.Character
+            local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+            if not ball:FindFirstChildWhichIsA("Trail") then return end
+            if not character or not humanoidRootPart then return end
+            if not Options.PullVector.Value then return end
+            if ball.Anchored then return end
+
+            local distance = (humanoidRootPart.Position - ball.Position).Magnitude
+            if distance > Options.PullVectorDistance.Value then return end
+
+            local direction = (ball.Position - humanoidRootPart.Position).Unit
+
+            if Options.PullVectorType.Value == "Teleport" then
+                local dist = 10 + ((Options.PullVectorPower.Value - 1) * 5)
+                if humanoidRootPart and typeof(humanoidRootPart) == "Instance" then
+                    humanoidRootPart.CFrame += direction * dist
+                end
+            else
+                if humanoidRootPart and typeof(humanoidRootPart) == "Instance" and humanoidRootPart:IsA("BasePart") then
+                    local newVelocity = direction * Options.PullVectorPower.Value * 25
+                    humanoidRootPart.Velocity = newVelocity
+                end
+            end
+        end)
+    end
+end)
+
+local function onCharacterMovement(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    task.spawn(function()
+        while AC_BYPASS and humanoid.Parent do
+            task.wait(.1)
+            if Options.JumpPower and Options.JumpPower.Value and Options.JumpPowerValue then
+                humanoid.JumpPower = Options.JumpPowerValue.Value
+            else
+                humanoid.JumpPower = 50
+            end
+        end
+    end)
+
+    humanoid.Jumping:Connect(function()
+        if humanoid:GetState() ~= Enum.HumanoidStateType.Jumping then return end
+        if AC_BYPASS then return end
+        task.wait(0.05)
+        if Options.JumpPower.Value then
+            pcall(function()
+                if humanoidRootPart and typeof(humanoidRootPart) == "Instance" and humanoidRootPart:IsA("BasePart") then
+                    local jumpBoost = Options.JumpPowerValue.Value - 50
+                    humanoidRootPart.Velocity += Vector3.new(0, jumpBoost, 0)
+                end
+            end)
+        end
+    end)
+end
+
+onCharacterMovement(player.Character or player.CharacterAdded:Wait())
+player.CharacterAdded:Connect(onCharacterMovement)
+
+runService:BindToRenderStep("walkSpeed", Enum.RenderPriority.Character.Value, function()
+    pcall(function()
+        local character = player.Character
+        local humanoid = character and character:FindFirstChild("Humanoid")
+
+        if not character or not humanoid then return end
+        if humanoid:GetState() ~= Enum.HumanoidStateType.Running then return end
+        if humanoid.WalkSpeed == 0 then return end
+        if not character:FindFirstChild("HumanoidRootPart") then return end
+
+        local moveDirection
+
+        if moveToUsing and #moveToUsing > 0 and (os.clock() - (moveToUsing[#moveToUsing] or 0)) < 0.5 then
+            if humanoid.WalkToPoint and typeof(humanoid.WalkToPoint) == "Vector3" and
+               character and character:FindFirstChild("HumanoidRootPart") and
+               typeof(character.HumanoidRootPart.Position) == "Vector3" then
+                local direction = (humanoid.WalkToPoint - character.HumanoidRootPart.Position)
+                if direction.Magnitude > 0 then
+                    moveDirection = direction.Unit
+                end
+            end
+        end
+
+        if not moveDirection then
+            moveDirection = humanoid.MoveDirection
+        end
+
+        local currentVel = Vector3.new(0, 0, 0)
+        if character and character:FindFirstChild("HumanoidRootPart") and
+           typeof(character.HumanoidRootPart) == "Instance" and
+           character.HumanoidRootPart:IsA("BasePart") then
+            currentVel = character.HumanoidRootPart.Velocity
+        end
+
+        if Options.Speed and Options.Speed.Value then
+            local speedVal = 20
+
+            if Options.SpeedValue then
+                if type(Options.SpeedValue.Value) == "number" and Options.SpeedValue.Value > 20 then
+                    speedVal = Options.SpeedValue.Value
+                end
+            end
+
+            if character and character:FindFirstChild("HumanoidRootPart") and
+               typeof(character.HumanoidRootPart) == "Instance" and
+               character.HumanoidRootPart:IsA("BasePart") then
+                local newVelocity = Vector3.new(
+                    moveDirection.X * speedVal,
+                    currentVel.Y,
+                    moveDirection.Z * speedVal
+                )
+                character.HumanoidRootPart.Velocity = newVelocity
+            end
+        end
+    end)
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        pcall(function()
+            if safeIndex(Options.Speed, "Value") and safeIndex(Options.SpeedValue, "Value") then
+                local character = player.Character
+                local humanoid = character and character:FindFirstChild("Humanoid")
+                if humanoid then
+                    if AC_BYPASS then
+                        humanoid.WalkSpeed = Options.SpeedValue.Value
+                    end
+                end
+            end
+
+            if safeIndex(Options.JumpPower, "Value") and safeIndex(Options.JumpPowerValue, "Value") then
+                local character = player.Character
+                local humanoid = character and character:FindFirstChild("Humanoid")
+                if humanoid and AC_BYPASS then
+                    humanoid.JumpPower = Options.JumpPowerValue.Value
+                end
+            end
+
+            -- Angle Enhancer additional handling
+            if safeIndex(Options.AngleAssist, "Value") and safeIndex(Options.AngleAssistJP, "Value") then
+                local character = player.Character
+                local humanoid = character and character:FindFirstChild("Humanoid")
+                if humanoid and AC_BYPASS then
+                    if os.clock() - (angleTick or 0) < 0.2 then
+                        humanoid.JumpPower = Options.AngleAssistJP.Value
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    local function hookCharacter(character)
+        local humanoid = character:WaitForChild("Humanoid")
+        local hrp = character:WaitForChild("HumanoidRootPart")
+
+        humanoid.Jumping:Connect(function(isJumpingState)
+            if not (humanoid:GetState() == Enum.HumanoidStateType.Jumping) then return end
+            if not (Options.AngleAssist and Options.AngleAssist.Value) then return end
+            if AC_BYPASS then return end
+
+            if (os.clock() - (angleTick or 0)) < 0.25 then
+                if hrp then
+                    pcall(function()
+                        local jpValue = Options.AngleAssistJP and Options.AngleAssistJP.Value or 50
+                        local impulse = (jpValue - 50)
+                        if impulse > 0 then
+                            hrp.Velocity += Vector3.new(0, impulse, 0)
+                        end
+                    end)
+                end
+            end
+        end)
+    end
+
+    hookCharacter(player.Character or player.CharacterAdded:Wait())
+    player.CharacterAdded:Connect(hookCharacter)
+
+    userInputService:GetPropertyChangedSignal("MouseBehavior"):Connect(function()
+        if userInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
+            -- Shift lock enabled
+        else
+            -- Shift lock disabled, update angle tick
+            angleTick = os.clock()
+        end
+    end)
+
+    while true do
+        task.wait()
+        pcall(function()
+            local character = player.Character
+            if not character then return end
+            local hrp = character:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+            local humanoid = character:FindFirstChild("Humanoid")
+            if not humanoid then return end
+
+            if AC_BYPASS then
+                if (os.clock() - (angleTick or 0) < 0.2) and Options.AngleAssist and Options.AngleAssist.Value then
+                    humanoid.JumpPower = (Options.JumpPower and Options.JumpPower.Value and Options.JumpPowerValue.Value or 50) + (Options.AngleAssistJP.Value - 50)
+                elseif not (Options.AngleAssist and Options.AngleAssist.Value) then
+                    humanoid.JumpPower = (Options.JumpPower and Options.JumpPower.Value and Options.JumpPowerValue.Value or 50)
+                end
+            end
+        end)
+    end
+end)
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("Sense Hub")
+SaveManager:SetFolder("Sense Hub/ff2")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+-- Enhanced arm resizing functionality with better error handling
+local originalArmSizes = {}
+local function resizeArms(character, resizeLevel)
+    if not character then return end
+
+    pcall(function()
+        local leftArm = character:FindFirstChild("Left Arm")
+        local rightArm = character:FindFirstChild("Right Arm")
+
+        if not leftArm or not rightArm then return end
+
+        -- Store original sizes if not already stored
+        if not originalArmSizes[character] then
+            originalArmSizes[character] = {
+                leftArm = leftArm.Size,
+                rightArm = rightArm.Size
+            }
+        end
+
+        local original = originalArmSizes[character]
+        if not original then return end
+
+        -- Calculate new size based on resize level (0-5)
+        -- Level 0 = normal, Level 5 = 2x length
+        local lengthMultiplier = 1 + (resizeLevel * 0.2)  -- Max 2x length at level 5
+
+        -- Only extend the Y axis (length) of the arms
+        local newLeftSize = Vector3.new(
+            original.leftArm.X,
+            original.leftArm.Y * lengthMultiplier,
+            original.leftArm.Z
+        )
+
+        local newRightSize = Vector3.new(
+            original.rightArm.X,
+            original.rightArm.Y * lengthMultiplier,
+            original.rightArm.Z
+        )
+
+        leftArm.Size = newLeftSize
+        rightArm.Size = newRightSize
+    end)
+end
+
+-- Connect arm resizing to toggle and slider
+local function onArmResizeChanged()
+    pcall(function()
+        local character = player.Character
+        if character and Options.ArmResizements and Options.ArmResizementValue then
+            if Options.ArmResizements.Value then
+                resizeArms(character, Options.ArmResizementValue.Value)
+            else
+                -- Reset to normal size when disabled
+                resizeArms(character, 0)
+            end
+        end
+    end)
+end
+
+-- Connect both toggle and slider to arm resizing
+ArmResizements:OnChanged(onArmResizeChanged)
+ArmResizementValue:OnChanged(onArmResizeChanged)
+
+-- Apply arm resizing when character spawns
+local function onCharacterSpawnedForArms(character)
+    -- Wait a bit for character to load fully
+    task.spawn(function()
+        task.wait(2)
+        originalArmSizes[character] = nil  -- Reset stored sizes for new character
+        if Options.ArmResizements and Options.ArmResizements.Value and Options.ArmResizementValue then
+            resizeArms(character, Options.ArmResizementValue.Value)
+        end
+    end)
+end
+
+player.CharacterAdded:Connect(onCharacterSpawnedForArms)
+if player.Character then
+    onCharacterSpawnedForArms(player.Character)
+end
+
+-- Add executor information to Info tab
+Tabs.Info:AddParagraph({
+    Title = "Executor Information",
+    Content = "Detected Executor: " .. EXECUTOR_NAME
+})
+
+Window:SelectTab(1)
+
+print("[Sense Hub] Detected Executor is:", EXECUTOR_NAME)
